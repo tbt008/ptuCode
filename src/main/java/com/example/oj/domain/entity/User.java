@@ -104,6 +104,29 @@ public class User implements Serializable {
     @TableField("update_time")
     private LocalDateTime updateTime;
 
+/**
+ * 解决简单问题的个数
+ */
+  @TableField("solve_easy")
+    private Integer solveEasy;
+
+    /**
+     * 解决中等问题的个数
+     */
+  @TableField("solve_middle")
+    private Integer solveMiddle;
+    /**
+     * 解决困难问题的个数
+     */
+  @TableField("solve_hard")
+    private Integer solveHard;
+    /**
+     * 分数 （简单+1分，中等+3分，困难+5分）
+     */
+    @TableField("score")
+    private Integer score;
+
+
     /**
      * 删除标志（0代表未删除，1代表已删除）
      */

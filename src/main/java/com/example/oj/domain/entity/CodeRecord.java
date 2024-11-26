@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 @TableName("code_record")
 public class CodeRecord {
 
-
+@TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     /**

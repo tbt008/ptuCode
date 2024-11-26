@@ -37,6 +37,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
 
 //        查找题目是否存在
 
+//         存在的话，获取一下题目的限制条件
 
 //    新增一条提交记录
         CodeRecord codeRecord = new CodeRecord();
@@ -56,7 +57,9 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
 //        获取结果和响应
 //        codeRecord.setResult()
 //        codeRecord.setJudgeInfo()
-//        题目的提交数+1
+
+
+//        题目的提交数+1  如果通过了通过数+1
 
 //        封装响应
         return null;

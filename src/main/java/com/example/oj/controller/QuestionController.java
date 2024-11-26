@@ -27,6 +27,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class QuestionController {
     @Autowired
     IQuestionService iQuestionService;
+
+    /**
+     * 提交代码
+     * @param judgeDTO
+     * @return
+     */
        @PostMapping("/judge")
     public Result submitQuestion(@RequestBody JudgeDTO judgeDTO){
 //           参数校验
@@ -37,5 +43,17 @@ if(judgeDTO.getCode()==null||judgeDTO.getQuestionId()<=0){
         return   Result.success(iQuestionService.submitQuestion(judgeDTO));
 
        }
+    /**
+     * 搜索题目
+     */
+    /**
+     * 新增题目（管理员）
+     */
+ /**
+     * 修改题目 （管理员）
+     */
+     /**
+     * 删除题目 （管理员）
+     */
 
 }

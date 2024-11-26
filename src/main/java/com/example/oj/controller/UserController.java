@@ -34,7 +34,7 @@ public class UserController {
      */
     @PostMapping("/register")
     public Result userRegister(@RequestBody UserRegisterDTO userRegisterDTO) {
-//要对密码md5加密
+//要对密码md5加密  账号要限制长度和数字  邮箱必填
               return null;
     }
     /**
@@ -42,6 +42,8 @@ public class UserController {
      */
     @PostMapping("/login")
     public Result userLogin(@RequestBody UserLoginDTO userLoginDTO) {
+
+//        生成jwt+redis存jwt
         return null;
     }
 
