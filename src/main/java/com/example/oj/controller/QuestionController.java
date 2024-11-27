@@ -34,9 +34,9 @@ public class QuestionController {
        @PostMapping("/judge")
     public Result submitQuestion(@RequestBody JudgeDTO judgeDTO){
 //           参数校验
-if(judgeDTO.getCode()==null||judgeDTO.getQuestionId()<=0){
-    throw new BusinessException(ErrorCode.PARAMS_ERROR);
-}
+        if(judgeDTO.getCode()==null||judgeDTO.getQuestionId()<=0){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
 //运行代码
         return   Result.success(iQuestionService.submitQuestion(judgeDTO));
 

@@ -6,7 +6,8 @@ import com.example.oj.common.Result;
 import com.example.oj.domain.dto.UserLoginDTO;
 import com.example.oj.domain.dto.UserRegisterDTO;
 import com.example.oj.domain.entity.User;
-
+import com.example.oj.exception.BusinessException;
+import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
 /**

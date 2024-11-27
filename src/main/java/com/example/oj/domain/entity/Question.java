@@ -111,11 +111,15 @@ public class Question implements Serializable {
     private String answer;
 
     /**
-     * 限制，时间复杂度，空间复杂度
-
+     * 时间限制(单位s)
      */
-    @TableField("astrict")
-    private String astrict;
+    @TableField("time_limit")
+    private Integer timeLimit;
 
+    /**
+     * 空间限制(单位mb)
+     */
+    @TableField("memory_limit")
+    private Integer memoryLimit;
 
 }
