@@ -114,8 +114,8 @@ public class Question implements Serializable {
      * 限制，时间复杂度，空间复杂度
 
      */
-    @TableField("restrict")
-    private String restrict;
+    @TableField("astrict")
+    private String astrict;
 
 
 }

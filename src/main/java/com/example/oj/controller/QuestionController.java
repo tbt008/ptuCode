@@ -7,12 +7,10 @@ import com.example.oj.domain.dto.JudgeDTO;
 import com.example.oj.domain.entity.Question;
 import com.example.oj.exception.BusinessException;
 import com.example.oj.service.IQuestionService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
-import org.springframework.web.bind.annotation.RestController;
+import javax.annotation.Resource;
+
 
 /**
  * <p>
@@ -25,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/question")
 public class QuestionController {
-    @Autowired
+    @Resource
     IQuestionService iQuestionService;
 
     /**
@@ -43,6 +41,16 @@ if(judgeDTO.getCode()==null||judgeDTO.getQuestionId()<=0){
         return   Result.success(iQuestionService.submitQuestion(judgeDTO));
 
        }
+
+
+
+            @GetMapping("/hello")
+            public Result get(){
+                Question one = iQuestionService.lambdaQuery().eq(Question::getTitleId, 1).one();
+                return   Result.success(one);
+
+                 }
+
     /**
      * 搜索题目
      */
