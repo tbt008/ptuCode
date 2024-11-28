@@ -1,14 +1,11 @@
 package com.example.oj.service.impl;
 
 
-import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
-import com.alibaba.fastjson2.TypeReference;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.oj.common.ErrorCode;
 import com.example.oj.common.Language;
-import com.example.oj.common.TestCaseResult;
 import com.example.oj.domain.dto.JudgeDTO;
 import com.example.oj.domain.entity.CodeRecord;
 import com.example.oj.domain.entity.Question;
@@ -16,9 +13,6 @@ import com.example.oj.exception.BusinessException;
 import com.example.oj.mapper.CodeRecordMapper;
 import com.example.oj.mapper.QuestionMapper;
 import com.example.oj.service.IQuestionService;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
@@ -26,7 +20,6 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -97,23 +90,10 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
                 executorService.submit(new Runnable() {
             @Override
             public void run() {
-                String langConfig = null;
-                if (Objects.equals(language, Language.C.getId())) {
-                    langConfig = Language.C.getLangConfig();
-                } else if (Objects.equals(language, Language.CPP.getId())) {
-                    langConfig = Language.CPP.getLangConfig();
-                } else if (Objects.equals(language, Language.JAVA.getId())) {
-                    langConfig = Language.JAVA.getLangConfig();
-                } else if (Objects.equals(language, Language.PYTHON.getId())) {
-                    langConfig = Language.PYTHON.getLangConfig();
-                }
+                String langConfig = getLanguageConfig(language);
                 try {
                     // 封装post基础数据
-                    HashMap<String, Object> questionMap = new HashMap<>();
-                    questionMap.put("max_cpu_time", 1000 * timeLimit);
-                    questionMap.put("max_memory", 1048576 * memoryLimit);
-                    questionMap.put("src", judgeDTO.getCode().toString());
-                    questionMap.put("test_case_id", judgeDTO.getQuestionId().toString());
+                    HashMap<String, Object> questionMap = getHashMap(1000 * timeLimit, 1048576 * memoryLimit, judgeDTO.getCode(), judgeDTO.getQuestionId().toString(), false);
 
                     // 封装post language_config
                     JSONObject jsonObject = JSONObject.parseObject(langConfig);
@@ -122,14 +102,8 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
                     result.putAll(jsonObject);
 
                     // 创建 HttpClient 和 HttpPost
-                    String url = "http://120.26.170.155:12358/judge";
                     HttpClient httpClient = HttpClientBuilder.create().build();
-                    HttpPost httpPost = new HttpPost(url);
-
-                    // 设置请求头
-                    httpPost.setHeader("Accept", "application/json");
-                    httpPost.setHeader("Content-Type", "application/json");
-                    httpPost.setHeader("X-Judge-Server-Token", "415d45f78c7799b50958fba9934971842612a63911805f5345118264dda7bebc");
+                    HttpPost httpPost = getHttpPost();
 
                     // 设置请求体
                     StringEntity entity = new StringEntity(result.toString());
@@ -137,8 +111,8 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
 
                     // 设置请求的超时配置
                     RequestConfig requestConfig = RequestConfig.custom()
-                            .setSocketTimeout(60000)
-                            .setConnectTimeout(60000)
+                            .setSocketTimeout(6000)
+                            .setConnectTimeout(6000)
                             .build();
                     httpPost.setConfig(requestConfig);
 
@@ -167,5 +141,39 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         return returnId;
     }
 
+    private String getLanguageConfig (Integer language) {
+        String langConfig = "";
+        if (Objects.equals(language, Language.C.getId())) {
+            langConfig = Language.C.getLangConfig();
+        } else if (Objects.equals(language, Language.CPP.getId())) {
+            langConfig = Language.CPP.getLangConfig();
+        } else if (Objects.equals(language, Language.JAVA.getId())) {
+            langConfig = Language.JAVA.getLangConfig();
+        } else if (Objects.equals(language, Language.PYTHON.getId())) {
+            langConfig = Language.PYTHON.getLangConfig();
+        }
+        return langConfig;
+    }
 
+    private HashMap<String, Object> getHashMap(Integer timeLimit, Integer memoryLimit, String code, String questionId, boolean output) {
+        HashMap<String, Object> questionMap = new HashMap<>();
+        questionMap.put("max_cpu_time", timeLimit);
+        questionMap.put("max_memory", memoryLimit);
+        questionMap.put("src", code);
+        questionMap.put("test_case_id", questionId);
+        if (output) {
+            questionMap.put("output", true);
+        }
+        return questionMap;
+    }
+
+    private HttpPost getHttpPost() {
+        String url = "http://120.26.170.155:12358/judge";
+        HttpPost httpPost = new HttpPost(url);
+        // 设置请求头
+        httpPost.setHeader("Accept", "application/json");
+        httpPost.setHeader("Content-Type", "application/json");
+        httpPost.setHeader("X-Judge-Server-Token", "415d45f78c7799b50958fba9934971842612a63911805f5345118264dda7bebc");
+        return httpPost;
+    }
 }
