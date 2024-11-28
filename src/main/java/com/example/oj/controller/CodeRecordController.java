@@ -1,6 +1,7 @@
 package com.example.oj.controller;
 
 import com.example.oj.common.Result;
+import com.example.oj.common.TestCaseResult;
 import com.example.oj.domain.entity.CodeRecord;
 import com.example.oj.domain.vo.CodeRecordVO;
 import com.example.oj.service.ICodeRecordService;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 @RestController
 @RequestMapping("/record")
@@ -37,5 +39,11 @@ public class CodeRecordController {
     public Result codeRecordGetById(@PathVariable Long id) throws Exception {
         CodeRecord score = codeRecordService.codeRecordGetById(id);
         return Result.success(score);
+    }
+
+    @GetMapping("/get/commits/{submissionId}")
+    public Result<List<TestCaseResult>> getRecordBySubmissionId(@PathVariable Long submissionId) {
+        List<TestCaseResult> testCaseResultListBySubmissionId = codeRecordService.getTestCaseResultListBySubmissionId(submissionId);
+        return Result.success(testCaseResultListBySubmissionId);
     }
 }

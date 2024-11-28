@@ -4,8 +4,6 @@ package com.example.oj.controller;
 import com.example.oj.common.ErrorCode;
 import com.example.oj.common.Result;
 import com.example.oj.domain.dto.JudgeDTO;
-import com.example.oj.domain.entity.CodeRecord;
-import com.example.oj.domain.entity.Question;
 import com.example.oj.exception.BusinessException;
 import com.example.oj.service.IQuestionService;
 import org.springframework.web.bind.annotation.*;
@@ -53,7 +51,7 @@ public class QuestionController {
     /**
      * 新增题目（管理员）
      */
- /**
+    /**
      * 修改题目 （管理员）
      */
      /**

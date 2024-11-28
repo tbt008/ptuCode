@@ -11,6 +11,7 @@ import com.example.oj.service.ICodeRecordService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -99,6 +100,27 @@ public class CodeRecordServiceImpl extends ServiceImpl<CodeRecordMapper, CodeRec
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public List<TestCaseResult> getTestCaseResultListBySubmissionId(Long submissionId) {
+
+        CodeRecord codeRecord = codeRecordMapper.selectById(submissionId);
+        String judgeInfo = codeRecord.getJudgeInfo();
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode rootNode = null;
+        try {
+            rootNode = objectMapper.readTree(judgeInfo);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        // 获取err
+        String err = rootNode.get("err").toString();
+        if (err.equals("null")) {
+            List<TestCaseResult> testCaseResults = JSON.parseArray(rootNode.get("data").toString(), TestCaseResult.class);
+            return testCaseResults;
+        }
+        return null;
     }
 
 }
