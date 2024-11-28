@@ -9,7 +9,6 @@ import lombok.experimental.Accessors;
 import java.time.LocalDate;
 
 @Data
-
 public class CodeRecordVO {
 
 
