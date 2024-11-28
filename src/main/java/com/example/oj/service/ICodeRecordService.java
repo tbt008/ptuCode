@@ -14,4 +14,6 @@ import com.example.oj.domain.entity.CodeRecord;
  */
 public interface ICodeRecordService extends IService<CodeRecord> {
 
+
+    CodeRecord codeRecordGetById(Long id);
 }

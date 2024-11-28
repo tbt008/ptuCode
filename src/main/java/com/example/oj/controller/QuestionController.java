@@ -34,6 +34,7 @@ public class QuestionController {
      */
     @PostMapping("/judge")
     public Result<Long> submitQuestion(@RequestBody JudgeDTO judgeDTO){
+           System.out.println(judgeDTO);
         // 参数校验
         if(judgeDTO.getCode()==null||judgeDTO.getQuestionId()<=0){
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -44,17 +45,7 @@ public class QuestionController {
 
 
 
-    @GetMapping("/hello")
-    public Result get(){
-        Question one = iQuestionService.lambdaQuery().eq(Question::getTitleId, 1).one();
-        return Result.success(one);
-    }
 
-    @GetMapping("codeRecordGetById/{submissionId}")
-    public Result codeRecordGetById(@PathVariable Long submissionId) throws Exception {
-        CodeRecord score = iQuestionService.codeRecordGetById(submissionId);
-        return Result.success(score);
-    }
 
     /**
      * 搜索题目

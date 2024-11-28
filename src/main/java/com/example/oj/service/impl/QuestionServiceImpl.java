@@ -59,6 +59,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
 
     @Override
     public Long submitQuestion(JudgeDTO judgeDTO) {
+
 //        校验语言是否正常
         Integer language = judgeDTO.getLanguage();
         if(!Language.judgeById(language)){
@@ -170,60 +171,5 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         return returnId;
     }
 
-    public CodeRecord codeRecordGetById(Long submissionId) throws Exception {
-        CodeRecord codeRecord = codeRecordMapper.selectById(submissionId);
-        Double result = codeRecord.getResult();
-        if (codeRecord == null) {
-            throw new Exception("submissionId is error, submissionId is {}" + submissionId);
-        } else if (codeRecord.getStatus() == 1) {
-            return codeRecord;
-        } else if (result == -2) {
-            return codeRecord;
-        } else if (result >= 0) {
-            return codeRecord;
-        }
-        String judgeInfo = codeRecord.getJudgeInfo();
-        if (judgeInfo == null) {
-            throw new Exception("judgeInfo is error, judgeInfo is {}" + judgeInfo);
-        }
-        ObjectMapper objectMapper = new ObjectMapper();
-        try {
 
-            JsonNode rootNode = objectMapper.readTree(judgeInfo);
-            String err = rootNode.get("err").toString();
-            System.out.println(err);
-
-            if (err.equals("null")) {
-                String data = rootNode.get("data").toString();
-                List<TestCaseResult> testCaseResults = JSON.parseArray(data, TestCaseResult.class);
-                if (testCaseResults.isEmpty()) {
-                    return codeRecord;
-                }
-                Double total = 1.0 * testCaseResults.size();
-                double score = 0.0;
-                for (TestCaseResult testCaseResult : testCaseResults) {
-                    if (testCaseResult.getResult() == 0) {
-                        score = score + 100.0;
-                    }
-                }
-                UpdateWrapper<CodeRecord> codeRecordUpdateWrapper = new UpdateWrapper<>();
-                codeRecordUpdateWrapper.eq("id", submissionId);
-                CodeRecord updateCodeRecord = new CodeRecord();
-                updateCodeRecord.setResult(score / total);
-                codeRecordMapper.update(updateCodeRecord, codeRecordUpdateWrapper);
-                codeRecord.setResult(score / total);
-                return codeRecord;
-            }
-
-            UpdateWrapper<CodeRecord> codeRecordUpdateWrapper = new UpdateWrapper<>();
-            codeRecordUpdateWrapper.eq("id", submissionId);
-            CodeRecord updateCodeRecord = new CodeRecord();
-            updateCodeRecord.setResult(-2.0);
-            codeRecordMapper.update(updateCodeRecord, codeRecordUpdateWrapper);
-            codeRecord.setResult(-2.0);
-            return codeRecord;
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-    }
 }

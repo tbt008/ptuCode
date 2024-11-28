@@ -21,5 +21,5 @@ public interface IQuestionService extends IService<Question> {
 
     Long submitQuestion(JudgeDTO judgeDTO);
 
-    public CodeRecord codeRecordGetById(Long submissionId) throws Exception;
+
 }

@@ -18,7 +18,7 @@ public class Result<T> implements Serializable {
 
     public static <T> Result<T> success() {
         Result<T> result = new Result<T>();
-        result.code = 1;
+        result.code = 200;
 
         return result;
     }
@@ -33,7 +33,7 @@ public class Result<T> implements Serializable {
     public static <T> Result<T> error(String msg) {
         Result result = new Result();
         result.msg = msg;
-        result.code = 0;
+        result.code = 400;
         return result;
     }
     public static <T> Result<T> error(Integer code,String msg) {
