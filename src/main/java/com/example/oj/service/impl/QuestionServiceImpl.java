@@ -164,10 +164,6 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
             }
         });
 
-
-//        题目的提交数+1  如果通过了通过数+1
-
-//        封装响应
         return returnId;
     }
 

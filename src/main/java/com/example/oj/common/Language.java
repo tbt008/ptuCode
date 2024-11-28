@@ -13,7 +13,7 @@ public enum Language {
             "      \"exe_name\": \"main\",\n" +
             "      \"max_cpu_time\": 3000,\n" +
             "      \"max_real_time\": 5000,\n" +
-            "      \"max_memory\": 134217728,\n" +
+            "      \"max_memory\": 1073741824,\n" +
             "      \"compile_command\": \"/usr/bin/gcc -DONLINE_JUDGE -O2 -w -fmax-errors=3 -std=c99 {src_path} -lm -o {exe_path}\"\n" +
             "    },\n" +
             "    \"run\": {\n" +
@@ -29,7 +29,7 @@ public enum Language {
             "      \"exe_name\": \"main\",\n" +
             "      \"max_cpu_time\": 3000,\n" +
             "      \"max_real_time\": 5000,\n" +
-            "      \"max_memory\": 134217728,\n" +
+            "      \"max_memory\": 1073741824,\n" +
             "      \"compile_command\": \"/usr/bin/g++ -DONLINE_JUDGE -O2 -w -fmax-errors=3 -std=c++11 {src_path} -lm -o {exe_path}\"\n" +
             "    },\n" +
             "    \"run\": {\n" +
@@ -51,7 +51,7 @@ public enum Language {
             "    },\n" +
             "    \"run\": {\n" +
             "      \"command\": \"/usr/bin/java -cp {exe_dir} -XX:MaxRAM={max_memory}k -Djava.security.manager -Dfile.encoding=UTF-8 -Djava.security.policy=/etc/java_policy -Djava.awt.headless=true Main\",\n" +
-            "      \"seccomp_rule\": null,\n" +  // 将 None 替换为 null
+            "      \"seccomp_rule\": \"\",\n" +  // 将 None 替换为 null
             "      \"memory_limit_check_only\": 1\n" +
             "    }\n" +
             "  }\n" +
@@ -63,7 +63,7 @@ public enum Language {
             "      \"exe_name\": \"__pycache__/solution.cpython-36.pyc\",\n" +
             "      \"max_cpu_time\": 3000,\n" +
             "      \"max_real_time\": 5000,\n" +
-            "      \"max_memory\": 134217728,\n" +  // 计算后的值
+            "      \"max_memory\": 1073741824,\n" +  // 计算后的值
             "      \"compile_command\": \"/usr/bin/python3 -m py_compile {src_path}\"\n" +
             "    },\n" +
             "    \"run\": {\n" +
