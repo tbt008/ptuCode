@@ -119,7 +119,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
                     // 发送请求
                     HttpResponse response = httpClient.execute(httpPost);
                     String strResult = EntityUtils.toString(response.getEntity());
-                    UpdateWrapper<CodeRecord>  codeRecordUpdateWrapper = new UpdateWrapper<>();
+                    UpdateWrapper<CodeRecord> codeRecordUpdateWrapper = new UpdateWrapper<>();
                     codeRecordUpdateWrapper.eq("id", returnId);
                     CodeRecord updateCodeRecord = new CodeRecord();
                     updateCodeRecord.setStatus(2);
