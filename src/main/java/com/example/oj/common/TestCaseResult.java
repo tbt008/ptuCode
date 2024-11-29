@@ -34,6 +34,7 @@ public class TestCaseResult {
      *SETUID_FAILED = -9
      *EXECVE_FAILED = -10
      *SPJ_ERROR = -11
+     * CE = -12
      */
     private int error;
 
