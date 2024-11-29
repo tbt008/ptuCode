@@ -3,7 +3,6 @@ package com.example.oj.controller;
 import com.example.oj.common.Result;
 import com.example.oj.domain.dto.ChatDTO;
 import com.example.oj.service.AIService;
-import com.example.oj.service.IQuestionService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,14 +13,20 @@ import javax.annotation.Resource;
 @RestController
 @RequestMapping("/AI")
 public class AIController {
-//    @Resource
-//    AIService aiService;
+    @Resource
+    AIService aiService;
     @PostMapping("/chat")
     public Result XingHuoChat(@RequestBody ChatDTO chatDTO){
-        if(chatDTO.getAi().equals("讯飞星火")){
-//            return aiService.XinHuoChat(chatDTO.getContent());
-            return null;
+        if (chatDTO.getAi() == null) {
+            chatDTO.setAi("智谱清言");
         }
-        return Result.error("智能体选择有误");
+        if(chatDTO.getAi().equals("讯飞星火")){
+            return aiService.XinHuoChat(chatDTO.getContent());
+
+        }
+        else if(chatDTO.getAi().equals("智谱清言")){
+            return aiService.ZhiPuChat(chatDTO.getId(),chatDTO.getContent());
+        }
+        else return Result.error("智能体选择有误");
     }
 }
