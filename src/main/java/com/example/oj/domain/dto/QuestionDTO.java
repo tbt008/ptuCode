@@ -2,7 +2,7 @@ package com.example.oj.domain.dto;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.example.oj.common.PageLimit;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -20,7 +20,8 @@ import java.util.List;
  * @since 2024-11-28
  */
 @Data
-public class QuestionDTO implements Serializable {
+@EqualsAndHashCode(callSuper = true)
+public class QuestionDTO extends PageLimit implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -98,5 +99,6 @@ public class QuestionDTO implements Serializable {
      */
     private Integer memoryLimit;
 
-    List<String> tags;
+
+    List<String> tag_names;
 }

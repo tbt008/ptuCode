@@ -1,6 +1,7 @@
 package com.example.oj.service.impl;
 
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.oj.domain.entity.Question;
 import com.example.oj.domain.entity.QuestionTag;
@@ -12,11 +13,14 @@ import com.example.oj.service.IQuestionTagService;
 
 import com.example.oj.service.ITagService;
 import net.sf.jsqlparser.statement.select.Select;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -49,6 +53,23 @@ public class QuestionTagServiceImpl extends ServiceImpl<QuestionTagMapper, Quest
         List<Tag> tags = iTagService.listByIds(tag_ids);
         List<String> tag_names=tags.stream().map(Tag::getName).collect(Collectors.toList());
         return tag_names;
+    }
+
+    @Override
+    public void savetag(Integer title_id,List<String> tagNames) {
+        List<Integer> ids = iTagService.listObjs(new LambdaQueryWrapper<Tag>()
+                        .select(Tag::getId)
+                        .in(Tag::getName, tagNames)
+                , obj -> Integer.valueOf(obj.toString())
+        );
+        if(ids!=null){
+            HashSet<Integer> set=new HashSet<>(ids);
+            List<QuestionTag> questionTags = new ArrayList<>();
+            for(Integer tag_id:set){
+                questionTags.add(new QuestionTag().setTagId(tag_id).setQuestionId(title_id));
+            }
+            saveBatch(questionTags);
+        }
     }
 
     @Override

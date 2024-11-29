@@ -21,5 +21,7 @@ public interface IQuestionTagService extends IService<QuestionTag> {
 
     List<String> getBytitleId(int titleId);
 
+    void savetag(Integer title_id,List<String> tagNames);
+
     boolean removeBytitleId(int titleId);
 }

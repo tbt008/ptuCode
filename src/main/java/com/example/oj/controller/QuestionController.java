@@ -9,8 +9,10 @@ import com.example.oj.domain.dto.JudgeDTO;
 import com.example.oj.domain.dto.QuestionDTO;
 import com.example.oj.domain.entity.Question;
 import com.example.oj.domain.entity.Tag;
+import com.example.oj.domain.vo.QuestionVo;
 import com.example.oj.exception.BusinessException;
 import com.example.oj.service.IQuestionService;
+import com.example.oj.service.IQuestionTagService;
 import com.example.oj.service.ITagService;
 import com.example.oj.service.impl.QuestionTagServiceImpl;
 import org.springframework.beans.BeanUtils;
@@ -36,6 +38,9 @@ public class QuestionController {
     @Resource
     private IQuestionService iQuestionService;
 
+    @Resource
+    private IQuestionTagService iQuestionTagService;
+
     /**
      * 提交代码
      * @param judgeDTO
@@ -60,16 +65,13 @@ public class QuestionController {
      * @retrun questionVo
      */
     @GetMapping("/{question_id}")
-    public Result getById(@PathVariable("question_id") Long id, HttpServletRequest request){
-//        Question question = iQuestionService.getById(id);
+    public Result<QuestionVo> getById(@PathVariable("question_id") Long id, HttpServletRequest request){
         Question question = iQuestionService.lambdaQuery().eq(Question::getTitleId, id).one();
         if(question==null){
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
         }
         return Result.success(iQuestionService.getQuestionVO(question));
     }
-
-
     /**
      * 新增题目（管理员）
      * @param questionDTO
@@ -80,14 +82,22 @@ public class QuestionController {
         if (questionDTO == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
+        // 判断是否存在
+        Boolean st = iQuestionService.lambdaQuery().eq(Question::getTitleId, questionDTO.getTitleId()).exists();
+        if(st==true){
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR,"题目id已经存在");
+        }
         Question question = new Question();
         BeanUtils.copyProperties(questionDTO, question);
+        // 参数校验
+        iQuestionService.validQuestion(question);
 
-        //TODO tags
+        List<String> tag_names = questionDTO.getTag_names();
+        if(tag_names!=null){
+            iQuestionTagService.savetag(questionDTO.getTitleId(),tag_names);
+        }
 
         //TODO judgeCase
-
-        iQuestionService.validQuestion(question);
         boolean vis = iQuestionService.save(question);
         if(vis==false){
             throw new BusinessException(ErrorCode.OPERATION_ERROR);
@@ -103,22 +113,27 @@ public class QuestionController {
      */
     @PutMapping("/update")
     public Result<Boolean> updateQuestion(@RequestBody QuestionDTO questionDTO,HttpServletRequest request) {
+        if (questionDTO == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
         // 判断是否存在
         Question question = iQuestionService.lambdaQuery().eq(Question::getTitleId, questionDTO.getTitleId()).one();
         if(question==null){
-            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR,"题目不存在");
         }
-        int id=question.getId();
         // 参数校验
         iQuestionService.validQuestion(question);
 
-        //TODO tags
+        List<String> tag_names = questionDTO.getTag_names();
+        if(tag_names!=null){
+            iQuestionTagService.removeBytitleId(questionDTO.getTitleId());
+            iQuestionTagService.savetag(questionDTO.getTitleId(),tag_names);
+        }
 
         //TODO judgeCase
         Question nowQuestion = new Question();
         BeanUtils.copyProperties(questionDTO, nowQuestion);
-        nowQuestion.setId(id);
-        System.out.println("question = " + nowQuestion);
+        nowQuestion.setId(question.getId());
         return Result.success(iQuestionService.updateById(nowQuestion));
     }
      /**
@@ -132,7 +147,7 @@ public class QuestionController {
          if(question==null){
              throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
          }
-         return Result.success(iQuestionService.removeByTitleid(question));
+         return Result.success(iQuestionService.removeQuestion(question));
      }
 
 }

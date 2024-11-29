@@ -24,12 +24,9 @@ public interface IQuestionService extends IService<Question> {
 
     Long submitQuestion(JudgeDTO judgeDTO);
 
-
-//    List<ResultInfoVO> submitQuestion(JudgeDTO judgeDTO);
-
     QuestionVo getQuestionVO(Question question);
 
     void validQuestion(Question question);
 
-    boolean removeByTitleid(Question question);
+    boolean removeQuestion(Question question);
 }

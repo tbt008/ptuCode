@@ -1,6 +1,7 @@
 package com.example.oj.service.impl;
 
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -57,9 +58,8 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
     @Resource
     private CodeRecordMapper codeRecordMapper;
 
-
     @Resource
-    private IQuestionTagService questionTagService;
+    private IQuestionTagService iQuestionTagService;
 
     @Override
     public Long submitQuestion(JudgeDTO judgeDTO) {
@@ -192,7 +192,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         QuestionVo questionVO = QuestionVo.potovo(question);
         int titleId = question.getTitleId();
 
-        List<String> tags = questionTagService.getBytitleId(titleId);
+        List<String> tags = iQuestionTagService.getBytitleId(titleId);
         questionVO.setTags(tags);
         return questionVO;
     }
@@ -222,10 +222,10 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
     }
 
     @Override
-    public boolean removeByTitleid(Question question) {
+    public boolean removeQuestion(Question question) {
         int titleId = question.getTitleId();
         removeById(question.getId());
-        return questionTagService.removeBytitleId(titleId);
+        return iQuestionTagService.removeBytitleId(titleId);
     }
 
 }
