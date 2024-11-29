@@ -17,7 +17,8 @@ public class AIController {
     AIService aiService;
     @PostMapping("/chat")
     public Result XingHuoChat(@RequestBody ChatDTO chatDTO){
-        if (chatDTO.getAi() == null) {
+        System.out.println(chatDTO);
+        if (chatDTO.getAi() == null || chatDTO.getAi().isEmpty()) {
             chatDTO.setAi("智谱清言");
         }
         if(chatDTO.getAi().equals("讯飞星火")){

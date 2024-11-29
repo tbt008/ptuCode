@@ -18,5 +18,5 @@ public class ChatDTO {
     /**
      * 选择的智能体
      */
-    private String Ai;
+    private String ai;
 }
