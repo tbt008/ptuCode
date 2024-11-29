@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 @TableName("code_record")
 public class CodeRecord {
 
-@TableId(value = "id", type = IdType.AUTO)
+    @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     /**
@@ -32,9 +32,9 @@ public class CodeRecord {
     private String code;
 
      /**
-     * 整体状态 通过，部分通过，编译错误
+     * -1代表未执行, -2代表CE, 代码错误
      */
-    private String result;
+    private double result;
 
     /**
      * 判题信息（json 对象）存每个测试点的信息

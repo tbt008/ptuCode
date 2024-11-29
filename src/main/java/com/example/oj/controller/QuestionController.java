@@ -41,25 +41,18 @@ public class QuestionController {
      * @param judgeDTO
      * @return
      */
-       @PostMapping("/judge")
-    public Result submitQuestion(@RequestBody JudgeDTO judgeDTO){
-//           参数校验
-if(judgeDTO.getCode()==null||judgeDTO.getQuestionId()<=0){
-    throw new BusinessException(ErrorCode.PARAMS_ERROR);
-}
-//运行代码
-        return   Result.success(iQuestionService.submitQuestion(judgeDTO));
+    @PostMapping("/judge")
+    public Result<Long> submitQuestion(@RequestBody JudgeDTO judgeDTO){
+           System.out.println(judgeDTO);
+        // 参数校验
+        if(judgeDTO.getCode()==null||judgeDTO.getQuestionId()<=0){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        //运行代码
+        return Result.success(iQuestionService.submitQuestion(judgeDTO));
+    }
 
-       }
 
-
-
-            @GetMapping("/hello")
-            public Result get(){
-                Question one = iQuestionService.lambdaQuery().eq(Question::getTitleId, 1).one();
-                return   Result.success(one);
-
-                 }
 
     /**
      * 搜索题目

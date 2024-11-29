@@ -9,9 +9,6 @@
         <module name="ptuCode" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="oj" target="17" />
-    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">

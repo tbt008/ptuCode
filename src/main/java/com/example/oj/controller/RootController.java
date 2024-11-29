@@ -9,14 +9,14 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/root")
 public class RootController {
 
-   /**
+    /**
      * 根据id查找用户所有信息
      */
     @GetMapping("/get/{id}")
     public Result getUserById(@PathVariable("id") Long id){
         return null;
     }
-/**
+    /**
      * 根据id设置用户停用
      */
     @GetMapping("/stop/{id}")

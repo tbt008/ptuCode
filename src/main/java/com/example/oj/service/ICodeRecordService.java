@@ -2,7 +2,10 @@ package com.example.oj.service;
 
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.example.oj.common.TestCaseResult;
 import com.example.oj.domain.entity.CodeRecord;
+
+import java.util.List;
 
 /**
  * <p>
@@ -14,4 +17,9 @@ import com.example.oj.domain.entity.CodeRecord;
  */
 public interface ICodeRecordService extends IService<CodeRecord> {
 
+
+    CodeRecord codeRecordGetById(Long id);
+
+
+    List<TestCaseResult> getTestCaseResultListBySubmissionId(Long submissionId);
 }
