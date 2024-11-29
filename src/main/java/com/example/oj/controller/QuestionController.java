@@ -3,6 +3,10 @@ package com.example.oj.controller;
 
 import cn.hutool.Hutool;
 import cn.hutool.http.server.HttpServerBase;
+import cn.hutool.socket.SocketUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.ObjectUtils;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.oj.common.ErrorCode;
 import com.example.oj.common.Result;
 import com.example.oj.domain.dto.JudgeDTO;
@@ -19,8 +23,11 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.lang.model.SourceVersion;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 
 /**
@@ -72,6 +79,26 @@ public class QuestionController {
         }
         return Result.success(iQuestionService.getQuestionVO(question));
     }
+    /**
+     * 题目列表
+     * @param questionDTO
+     * @retrun Page
+     */
+    @PostMapping("/list")
+    public Result<Page<QuestionVo>> QuestionList(@RequestBody QuestionDTO questionDTO, HttpServletRequest request) {
+        if (questionDTO == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        long start = questionDTO.getPageStart();
+        long size = questionDTO.getPageSize();
+        //TODO 标签筛选
+
+        Page<Question> questionPage = iQuestionService.page(
+                new Page<>(start, size),
+                iQuestionService.getListWrapper(questionDTO));
+        return Result.success(iQuestionService.getQuestionPageVO(questionPage));
+    }
+
     /**
      * 新增题目（管理员）
      * @param questionDTO

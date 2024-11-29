@@ -70,14 +70,14 @@ public class QuestionDTO extends PageLimit implements Serializable {
     private Integer score;
 
     /**
-     * 尝试过的人数
+     * 查询的最小难度
      */
-//    private Integer tryPerson;
+    private Integer minscore;
 
     /**
-     * 通过的人数
+     * 查询的最大难度
      */
-//    private Integer passPerson;
+    private Integer maxscore;
 
     /**
      * 判断题目的测试用例
