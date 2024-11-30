@@ -7,10 +7,12 @@ import com.example.oj.domain.entity.ChatHistory;
 public interface AIService extends IService<ChatHistory> {
     /**
      * 获取讯飞星火的回答
+     *
+     * @param Id
      * @param content
      * @return
      */
-    Result XinHuoChat(String content);
+    Result XinHuoChat(String Id, String content);
     /**
      * 获取智谱清言的回答
      * @param content

@@ -17,12 +17,15 @@ public class AIController {
     AIService aiService;
     @PostMapping("/chat")
     public Result XingHuoChat(@RequestBody ChatDTO chatDTO){
-        System.out.println(chatDTO);
+        if (chatDTO.getId() == null || chatDTO.getId().isEmpty()) {
+            return Result.error("ID不能为空");
+        }
+        if (chatDTO.getContent().isEmpty()) return Result.error("内容不能为空");
         if (chatDTO.getAi() == null || chatDTO.getAi().isEmpty()) {
             chatDTO.setAi("智谱清言");
         }
         if(chatDTO.getAi().equals("讯飞星火")){
-            return aiService.XinHuoChat(chatDTO.getContent());
+            return aiService.XinHuoChat(chatDTO.getId(),chatDTO.getContent());
 
         }
         else if(chatDTO.getAi().equals("智谱清言")){

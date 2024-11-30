@@ -7,14 +7,16 @@ import com.example.oj.common.Result;
 import com.example.oj.domain.entity.ChatHistory;
 import com.example.oj.mapper.AIMapper;
 import com.example.oj.service.AIService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.alibaba.fastjson.JSONObject;
-import okhttp3.*;
-
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -22,21 +24,14 @@ import java.util.*;
  * @author wqb
  * AI调用
  */
+@Slf4j
 @Service
 public class AIServiceImpl extends ServiceImpl<AIMapper, ChatHistory> implements AIService {
     @Autowired
     private AIMapper aiMapper;
-    private static final String HOST_URL = "https://spark-api.xf-yun.com/v3.5/chat";
-    private static final String DOMAIN = "generalv3.5";
-    private static final String APP_ID = "e81fe3f7";
-    private static final String API_SECRET = "NDEwMDQyNDhkMjdjZmZlZWMzZjMyYmU5";
-    private static final String API_KEY = "4e3b9550ccfcd72c628df6550fe63535";
-
-    private final OkHttpClient client = new OkHttpClient();
-
     /*
-        智谱清言api
-     */
+    智谱清言api
+ */
     private static final String ZP_API_KEY = "62682dd39f68f6f7c11bf9e4e961d84b.GV5BuEvBO6b5DeAP";
     private static final String ZP_API_URL = "https://open.bigmodel.cn/api/paas/v4/chat/completions";
 
@@ -46,17 +41,147 @@ public class AIServiceImpl extends ServiceImpl<AIMapper, ChatHistory> implements
      */
     private static final int MAX_CHAT_HISTORY_SIZE = 20000;
 
+    /**
+     * 讯飞星火api
+     * 目前是http请求方式，多余的配置未来可以改websocket用
+     */
+    private static final String HOST_URL = "https://spark-api.xf-yun.com/v3.5/chat";
+    private static final String XH_URL = "https://spark-api-open.xf-yun.com/v1/chat/completions";
+    private static final String XH_API_token = "kyNichDhYJnUpDTNxeui:BdIWtUBLFMgahQfBiwtc";
+    private static final String DOMAIN = "generalv3.5";
+    private static final String APP_ID = "e81fe3f7";
+    private static final String API_SECRET = "NDEwMDQyNDhkMjdjZmZlZWMzZjMyYmU5";
+    private static final String API_KEY = "4e3b9550ccfcd72c628df6550fe63535";
 
 
     /**
      * 讯飞星火
+     *
+     * @param Id
      * @param content
      * @return
      */
-    public Result XinHuoChat(String content) {
-        return Result.success("test");
+    public Result XinHuoChat(String Id, String content) {
+        Id += "XingHuoFCT";
+        Boolean flag = false;
+        // Fetch the existing chat history from the database
+        QueryWrapper<ChatHistory> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("id", Id).eq("ai", "讯飞星火");
+        ChatHistory existingChatHistory = aiMapper.selectOne(queryWrapper);
+
+        // Initialize chat history or use existing history if found
+        JSONArray chatHistoryArray = new JSONArray();
+
+        if (existingChatHistory != null) {
+            flag = true;
+            LocalDateTime timestamp = existingChatHistory.getTimestamp();  // 假设这个字段是 LocalDateTime 类型
+
+            if (timestamp != null) {
+                // 获取当前时间
+                LocalDateTime currentTime = LocalDateTime.now();
+
+                // 计算时间差，判断是否超过6小时
+                Duration duration = Duration.between(timestamp, currentTime);
+                if (duration.toHours() >= 6) {
+                    // 如果超过6小时，则清空聊天记录
+                    aiMapper.deleteById(existingChatHistory.getId());  // 假设 existingChatHistory 有 id 字段
+                    flag = false;
+                    log.info("聊天缓存超时，已清除");
+                }
+            }
+            String chatText = existingChatHistory.getChatText();
+            if (chatText.length() > MAX_CHAT_HISTORY_SIZE) {  // 这里的 MAX_CHAT_HISTORY_SIZE 是您设置的最大长度
+                // 清空聊天记录
+                aiMapper.deleteById(existingChatHistory.getId());  // 假设 existingChatHistory 有 id 字段
+                log.info("聊天缓存过多，已清除");
+                return Result.error("聊天缓存过多，已清除,请刷新重试");
+            }
+            if(flag)chatHistoryArray = JSONArray.parseArray(existingChatHistory.getChatText());
+        }
+
+        // Create the user message as a JSONObject
+        JSONObject userMessage = new JSONObject();
+        userMessage.put("role", "user");
+        userMessage.put("content", content);
+
+        // Add user's message to the chat history array
+        chatHistoryArray.add(userMessage);
+
+        // Send message to the AI and get the response
+        String botResponse = sendMessageToAPI(chatHistoryArray.toString());
+
+        // Create the assistant's response as a JSONObject
+        JSONObject assistantMessage = new JSONObject();
+        assistantMessage.put("role", "assistant");
+        assistantMessage.put("content", botResponse);
+
+        // Add assistant's message to the chat history array
+        chatHistoryArray.add(assistantMessage);
+
+        if (flag) {
+            //如果上面根据id有找到数据且没超时，就修改数据
+            existingChatHistory.setChatText(chatHistoryArray.toJSONString());
+            existingChatHistory.setTimestamp(LocalDateTime.now());
+            aiMapper.updateById(existingChatHistory);
+        } else {
+            //没找到就新增
+            ChatHistory chatHistory = new ChatHistory();
+
+            chatHistory.setId(Id);
+            chatHistory.setAi("讯飞星火");
+            chatHistory.setChatText(chatHistoryArray.toJSONString());
+            chatHistory.setTimestamp(LocalDateTime.now());
+            log.info("新增聊天记录");
+            aiMapper.insert(chatHistory);
+        }
+        return Result.success(botResponse);
     }
 
+    private String sendMessageToAPI(String chatHistory) {
+        try {
+            String url = XH_URL;
+
+            // Prepare the data to send to the API
+            String jsonData = "{\n" +
+                    "    \"model\": \""+ DOMAIN +"\",\n" +
+                    "    \"messages\": " + chatHistory + ",\n" +  // Send the formatted chat history as part of the request
+                    "    \"stream\": false\n" +
+                    "}";
+
+            // Create URL object
+            URL urlObj = new URL(url);
+            HttpURLConnection connection = (HttpURLConnection) urlObj.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("Authorization", "Bearer "+XH_API_token); // Replace with your actual API token
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setDoOutput(true);
+
+            // Send the request payload
+            try (OutputStream os = connection.getOutputStream()) {
+                byte[] input = jsonData.getBytes("utf-8");
+                os.write(input, 0, input.length);
+            }
+
+            // Get the response and parse it
+            StringBuilder responseBuilder = new StringBuilder();
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), "utf-8"))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    responseBuilder.append(line);
+                }
+            }
+
+            // Parse the response and extract assistant's message
+            JSONObject jsonResponse = JSONObject.parseObject(responseBuilder.toString());
+            JSONArray choices = jsonResponse.getJSONArray("choices");
+            JSONObject message = choices.getJSONObject(0).getJSONObject("message");
+            return message.getString("content");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "发生错误: " + e.getMessage();
+        }
+    }
 
     /**
      * 智谱清言
@@ -70,27 +195,42 @@ public class AIServiceImpl extends ServiceImpl<AIMapper, ChatHistory> implements
         if (content == null || content.trim().isEmpty()) {
             return Result.error("内容不能为空");
         }
+        Boolean flag = false;
         //根据id找一下，看看存不存在
         QueryWrapper<ChatHistory> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("id",Id);
+        queryWrapper.eq("id", Id).eq("ai", "智谱清言");
         ChatHistory existingChatHistory = aiMapper.selectOne(queryWrapper);
         //用数组存json聊天记录（api要求）
         JSONArray chatArray = new JSONArray();
 
         if (existingChatHistory != null) {
             try {
+                LocalDateTime timestamp = existingChatHistory.getTimestamp();
+                flag = true;
+                if (timestamp != null) {
+                    // 获取当前时间
+                    LocalDateTime currentTime = LocalDateTime.now();
+
+                    // 计算时间差，判断是否超过6小时
+                    Duration duration = Duration.between(timestamp, currentTime);
+                    if (duration.toHours() >= 6) {
+                        // 如果超过6小时，则清空聊天记录
+                        aiMapper.deleteById(existingChatHistory.getId());  // 假设 existingChatHistory 有 id 字段
+                        flag = false;
+                        log.info("聊天缓存超时，已清除");
+                    }
+                }
                 // 检查聊天记录是否过大（比如超过某个大小限制）
                 String chatText = existingChatHistory.getChatText();
                 if (chatText.length() > MAX_CHAT_HISTORY_SIZE) {  // 这里的 MAX_CHAT_HISTORY_SIZE 是您设置的最大长度
                     // 清空聊天记录
                     aiMapper.deleteById(existingChatHistory.getId());  // 假设 existingChatHistory 有 id 字段
-
-                    // 返回错误信息，提示聊天记录过大
-                    return Result.error("聊天缓存过多，已清除");
+                    log.info("聊天缓存过长，已清除");
+                    return Result.error("聊天缓存过多，已清除,请刷新重试");
                 }
 
                 // 从数据库里拿聊天记录
-                chatArray = JSONArray.parseArray(chatText);
+                if(flag)chatArray = JSONArray.parseArray(chatText);
             } catch (Exception e) {
                 return Result.error("解析聊天记录失败");
             }
@@ -131,7 +271,7 @@ public class AIServiceImpl extends ServiceImpl<AIMapper, ChatHistory> implements
         //记录ai的回答
         chatArray.add(createMessage("assistant", ZpContent));
 
-        if (existingChatHistory != null) {
+        if (flag) {
             //如果上面根据id有找到数据，就修改数据
             existingChatHistory.setChatText(chatArray.toJSONString());
             existingChatHistory.setTimestamp(LocalDateTime.now());
