@@ -3,6 +3,7 @@ package com.example.oj.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.oj.common.ErrorCode;
+import com.example.oj.common.InputCase;
 import com.example.oj.common.Result;
 import com.example.oj.common.TestCaseResult;
 import com.example.oj.domain.dto.JudgeDTO;
@@ -60,11 +61,14 @@ public class QuestionController {
 
     /**
      * 获得测试样例
-     * @param input
+     * @param inputCase
      * @return
      */
     @PostMapping("/test")
-    public Result<TestCaseResult> submitQuestionTest(@RequestBody String input, @RequestBody Integer language, @RequestBody String code) throws UnsupportedEncodingException {
+    public Result<TestCaseResult> submitQuestionTest(@RequestBody InputCase inputCase) throws UnsupportedEncodingException {
+        String input = inputCase.getInput();
+        Integer language = inputCase.getLanguage();;
+        String code = inputCase.getCode();
         if (input==null) {
             input = "";
         }

@@ -11,6 +11,7 @@ import com.baomidou.mybatisplus.core.toolkit.ObjectUtils;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.example.oj.common.BaseContext;
 import com.example.oj.common.ErrorCode;
 import com.example.oj.common.Language;
 import com.example.oj.common.TestCaseResult;
@@ -102,8 +103,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         codeRecord.setCode(judgeDTO.getCode());
         codeRecord.setLanguage(language);
         codeRecord.setQuestionId(judgeDTO.getQuestionId());
-//     TODO  登录后获取用户id
-        codeRecord.setUserId(1L);
+        codeRecord.setUserId( BaseContext.getUserInfo().getUserId());
 
         LocalDateTime now = LocalDateTime.now();
         codeRecord.setCreateTime(now);
