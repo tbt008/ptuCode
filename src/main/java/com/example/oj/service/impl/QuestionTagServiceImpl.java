@@ -40,19 +40,36 @@ public class QuestionTagServiceImpl extends ServiceImpl<QuestionTagMapper, Quest
 
 
     @Override
-    public List<String> getBytitleId(int titleId) {
+    public List<String> getTagNamesBytitleId(int titleId) {
         boolean st=lambdaQuery().eq(QuestionTag::getQuestionId,titleId).exists();
         if(st==false){
             return Collections.emptyList();
         }
         List<QuestionTag> questionTags=lambdaQuery()
-//                .select(QuestionTag::getTagId)
                 .eq(QuestionTag::getQuestionId,titleId)
                 .list();
         List<Integer> tag_ids=questionTags.stream().map(QuestionTag::getTagId).collect(Collectors.toList());
         List<Tag> tags = iTagService.listByIds(tag_ids);
         List<String> tag_names=tags.stream().map(Tag::getName).collect(Collectors.toList());
         return tag_names;
+    }
+
+    @Override
+    public List<Integer> getTitleIdsbyTagName(String tagName) {
+        Tag tag = iTagService.lambdaQuery().eq(Tag::getName, tagName).one();
+        if(tag==null){
+            return null;
+        }
+        Integer id=Integer.valueOf(String.valueOf(tag.getId()));
+        List<Integer> title_ids = listObjs(new LambdaQueryWrapper<QuestionTag>()
+                        .select(QuestionTag::getQuestionId)
+                        .eq(QuestionTag::getTagId, id)
+                , obj -> Integer.valueOf(obj.toString())
+        );
+        if(title_ids==null){
+            return null;
+        }
+        return title_ids;
     }
 
     @Override

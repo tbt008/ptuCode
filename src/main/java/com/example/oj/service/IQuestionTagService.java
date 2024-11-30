@@ -19,7 +19,9 @@ import java.util.List;
 @Component
 public interface IQuestionTagService extends IService<QuestionTag> {
 
-    List<String> getBytitleId(int titleId);
+    List<String> getTagNamesBytitleId(int titleId);
+
+    List<Integer> getTitleIdsbyTagName(String tagName);
 
     void savetag(Integer title_id,List<String> tagNames);
 

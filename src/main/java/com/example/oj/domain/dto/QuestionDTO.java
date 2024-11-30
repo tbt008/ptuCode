@@ -100,5 +100,5 @@ public class QuestionDTO extends PageLimit implements Serializable {
     private Integer memoryLimit;
 
 
-    List<String> tag_names;
+    List<String> tagNames;
 }

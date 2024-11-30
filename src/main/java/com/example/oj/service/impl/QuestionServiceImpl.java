@@ -192,7 +192,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         QuestionVo questionVO = QuestionVo.potovo(question);
         //添加标签
         int titleId = question.getTitleId();
-        List<String> tags = iQuestionTagService.getBytitleId(titleId);
+        List<String> tags = iQuestionTagService.getTagNamesBytitleId(titleId);
         questionVO.setTags(tags);
         return questionVO;
     }
@@ -212,6 +212,13 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         String sortOrder = questionDTO.getSortOrder();
         Integer minScore = questionDTO.getMinscore();
         Integer maxScore = questionDTO.getMaxscore();
+        List<String>  tagNames=questionDTO.getTagNames();
+        if(tagNames!=null){
+            for(String tagName:tagNames){
+                List<Integer> tid=iQuestionTagService.getTitleIdsbyTagName(tagName);
+                queryWrapper.in(ObjectUtils.isNotEmpty(tid), "title_id", tid);
+            }
+        }
 
         queryWrapper.eq(ObjectUtils.isNotEmpty(titleId), "title_id", titleId);
         queryWrapper.like(StringUtils.isNotBlank(titleName), "title_name", titleName);

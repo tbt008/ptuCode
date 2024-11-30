@@ -82,7 +82,7 @@ public class QuestionController {
     /**
      * 题目列表
      * @param questionDTO
-     * @retrun Page
+     * @retrun Page<QuestionVo>
      */
     @PostMapping("/list")
     public Result<Page<QuestionVo>> QuestionList(@RequestBody QuestionDTO questionDTO, HttpServletRequest request) {
@@ -91,7 +91,6 @@ public class QuestionController {
         }
         long start = questionDTO.getPageStart();
         long size = questionDTO.getPageSize();
-        //TODO 标签筛选
 
         Page<Question> questionPage = iQuestionService.page(
                 new Page<>(start, size),
@@ -119,7 +118,7 @@ public class QuestionController {
         // 参数校验
         iQuestionService.validQuestion(question);
 
-        List<String> tag_names = questionDTO.getTag_names();
+        List<String> tag_names = questionDTO.getTagNames();
         if(tag_names!=null){
             iQuestionTagService.savetag(questionDTO.getTitleId(),tag_names);
         }
@@ -151,7 +150,7 @@ public class QuestionController {
         // 参数校验
         iQuestionService.validQuestion(question);
 
-        List<String> tag_names = questionDTO.getTag_names();
+        List<String> tag_names = questionDTO.getTagNames();
         if(tag_names!=null){
             iQuestionTagService.removeBytitleId(questionDTO.getTitleId());
             iQuestionTagService.savetag(questionDTO.getTitleId(),tag_names);
