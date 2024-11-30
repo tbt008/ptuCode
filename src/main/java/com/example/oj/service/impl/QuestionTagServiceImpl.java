@@ -3,8 +3,8 @@ package com.example.oj.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.example.oj.mapper.domain.entity.QuestionTag;
-import com.example.oj.mapper.domain.entity.Tag;
+import com.example.oj.domain.entity.QuestionTag;
+import com.example.oj.domain.entity.Tag;
 import com.example.oj.mapper.QuestionTagMapper;
 import com.example.oj.service.IQuestionTagService;
 

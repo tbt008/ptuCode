@@ -1,7 +1,7 @@
-package com.example.oj.mapper.domain.vo;
+package com.example.oj.domain.vo;
 
 import com.baomidou.mybatisplus.annotation.TableField;
-import com.example.oj.mapper.domain.entity.Question;
+import com.example.oj.domain.entity.Question;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 

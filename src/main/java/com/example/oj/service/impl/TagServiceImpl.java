@@ -1,6 +1,6 @@
 package com.example.oj.service.impl;
 
-import com.example.oj.mapper.domain.entity.Tag;
+import com.example.oj.domain.entity.Tag;
 import com.example.oj.mapper.TagMapper;
 import com.example.oj.service.ITagService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;

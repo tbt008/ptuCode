@@ -2,8 +2,8 @@ package com.example.oj.controller;
 
 import com.example.oj.common.Result;
 import com.example.oj.common.TestCaseResult;
-import com.example.oj.mapper.domain.entity.CodeRecord;
-import com.example.oj.mapper.domain.vo.CodeRecordVO;
+import com.example.oj.domain.entity.CodeRecord;
+import com.example.oj.domain.vo.CodeRecordVO;
 import com.example.oj.service.ICodeRecordService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;

@@ -11,11 +11,11 @@ spring:
 ptu:
   jwt:
     # 设置jwt签名加密时使用的秘钥
-    admin-secret-key: ptu_code_i_love_you
+    secret-key: ptu_code_i_love_you
     # 设置jwt过期时间
-    admin-ttl: 7200000
+    ttl: 7200000
     # 设置前端传递过来的令牌名称
-    admin-token-name: authentication
+    token-name: authentication
   redis:
     host: 120.26.170.155
     port: 6379

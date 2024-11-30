@@ -2,7 +2,7 @@ package com.example.oj.service;
 
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.example.oj.mapper.domain.entity.QuestionTag;
+import com.example.oj.domain.entity.QuestionTag;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

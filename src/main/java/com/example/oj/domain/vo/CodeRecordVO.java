@@ -1,4 +1,4 @@
-package com.example.oj.mapper.domain.vo;
+package com.example.oj.domain.vo;
 
 
 import lombok.Data;

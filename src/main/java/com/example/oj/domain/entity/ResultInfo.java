@@ -1,4 +1,4 @@
-package com.example.oj.mapper.domain.entity;
+package com.example.oj.domain.entity;
 
 import com.example.oj.common.RunStatus;
 import lombok.Data;

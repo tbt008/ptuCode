@@ -2,7 +2,7 @@ package com.example.oj.controller;
 
 import com.example.oj.common.PageLimit;
 import com.example.oj.common.Result;
-import com.example.oj.mapper.domain.dto.UserRegisterDTO;
+import com.example.oj.domain.dto.UserRegisterDTO;
 import org.springframework.web.bind.annotation.*;
 //管理员权限
 @RestController

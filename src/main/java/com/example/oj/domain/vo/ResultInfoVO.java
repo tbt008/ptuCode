@@ -1,6 +1,6 @@
-package com.example.oj.mapper.domain.vo;
+package com.example.oj.domain.vo;
 
-import com.example.oj.mapper.domain.entity.ResultInfo;
+import com.example.oj.domain.entity.ResultInfo;
 
 import java.util.List;
 

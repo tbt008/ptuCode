@@ -2,13 +2,13 @@ package com.example.oj.controller;
 
 
 import cn.hutool.json.JSONUtil;
-import cn.hutool.system.UserInfo;
+
 import com.example.oj.common.*;
-import com.example.oj.mapper.domain.dto.UserLoginDTO;
-import com.example.oj.mapper.domain.dto.UserRegisterDTO;
-import com.example.oj.mapper.domain.entity.User;
+import com.example.oj.domain.dto.UserLoginDTO;
+import com.example.oj.domain.dto.UserRegisterDTO;
+import com.example.oj.domain.entity.User;
+import com.example.oj.domain.entity.UserInfo;
 import com.example.oj.exception.BusinessException;
-import com.example.oj.properties.JwtProperties;
 import com.example.oj.service.IUserService;
 import com.example.oj.utils.JwtUtil;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -108,8 +108,8 @@ if(id==null){
         String token = JwtUtil.createJWT(jwtProperties.getSecretKey(), jwtProperties.getTtl(), claims);
 //        存redis
 //        先删除旧的token，就是说会把上一个登录同号的人挤下线
-        redisTemplate.opsForValue().getAndDelete(userLoginDTO.getId());
-redisTemplate.opsForValue().set(userLoginDTO.getId(),token,jwtProperties.getTtl());
+        redisTemplate.opsForValue().getAndDelete("login:"+userLoginDTO.getId());
+redisTemplate.opsForValue().set("login:"+userLoginDTO.getId(),token,jwtProperties.getTtl());
     return Result.success(token);
     }
 
@@ -120,8 +120,8 @@ redisTemplate.opsForValue().set(userLoginDTO.getId(),token,jwtProperties.getTtl(
     public Result userLogout() {
 //        退出
 //        删除redis中的token使登录无效
-        UserInfo user = JSONUtil.toBean(BaseContext.getUserInfo(), UserInfo.class);
-        redisTemplate.opsForValue().getAndDelete(user.getUserId().toString());
+        UserInfo user = BaseContext.getUserInfo();
+        redisTemplate.opsForValue().getAndDelete("login:"+user.getUserId().toString());
      return Result.success("退出成功");
     }
 
@@ -130,7 +130,7 @@ redisTemplate.opsForValue().set(userLoginDTO.getId(),token,jwtProperties.getTtl(
      */
     @GetMapping("/get/user")
     public Result getLoginUser() {
-        UserInfo userInfo = JSONUtil.toBean(BaseContext.getUserInfo(), UserInfo.class);
+       UserInfo userInfo = BaseContext.getUserInfo();
         User user = userService.getById(userInfo.getUserId());
 //        去掉敏感信息
         user.setPassword("");

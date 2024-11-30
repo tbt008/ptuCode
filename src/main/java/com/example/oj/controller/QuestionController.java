@@ -1,18 +1,19 @@
 package com.example.oj.controller;
 
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.oj.common.ErrorCode;
 import com.example.oj.common.Result;
 import com.example.oj.common.TestCaseResult;
-import com.example.oj.mapper.domain.dto.JudgeDTO;
-import com.example.oj.mapper.domain.dto.QuestionDTO;
-import com.example.oj.mapper.domain.entity.Question;
-import com.example.oj.mapper.domain.vo.QuestionVo;
+import com.example.oj.domain.dto.JudgeDTO;
+import com.example.oj.domain.dto.QuestionDTO;
+import com.example.oj.domain.entity.Question;
+import com.example.oj.domain.vo.QuestionVo;
 import com.example.oj.exception.BusinessException;
 import com.example.oj.service.IQuestionService;
 import com.example.oj.service.IQuestionTagService;
 import org.springframework.beans.BeanUtils;
-import org.springframework.data.domain.Page;
+
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;

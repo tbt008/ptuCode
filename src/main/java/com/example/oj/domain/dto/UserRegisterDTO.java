@@ -1,4 +1,4 @@
-package com.example.oj.mapper.domain.dto;
+package com.example.oj.domain.dto;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 
