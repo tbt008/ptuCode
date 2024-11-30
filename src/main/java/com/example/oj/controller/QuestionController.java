@@ -4,22 +4,21 @@ package com.example.oj.controller;
 import com.example.oj.common.ErrorCode;
 import com.example.oj.common.Result;
 import com.example.oj.common.TestCaseResult;
-import com.example.oj.domain.dto.JudgeDTO;
-import com.example.oj.domain.entity.CodeRecord;
+import com.example.oj.mapper.domain.dto.JudgeDTO;
+import com.example.oj.mapper.domain.dto.QuestionDTO;
+import com.example.oj.mapper.domain.entity.Question;
+import com.example.oj.mapper.domain.vo.QuestionVo;
 import com.example.oj.exception.BusinessException;
 import com.example.oj.service.IQuestionService;
 import com.example.oj.service.IQuestionTagService;
-import com.example.oj.service.ITagService;
-import com.example.oj.service.impl.QuestionTagServiceImpl;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import javax.lang.model.SourceVersion;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+
 import java.io.UnsupportedEncodingException;
 
 

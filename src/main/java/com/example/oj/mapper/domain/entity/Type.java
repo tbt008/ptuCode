@@ -1,4 +1,4 @@
-package com.example.oj.domain.entity;
+package com.example.oj.mapper.domain.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;

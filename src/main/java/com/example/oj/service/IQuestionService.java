@@ -1,18 +1,17 @@
 package com.example.oj.service;
 
 
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.example.oj.common.TestCaseResult;
-import com.example.oj.domain.dto.JudgeDTO;
-import com.example.oj.domain.dto.QuestionDTO;
-import com.example.oj.domain.entity.CodeRecord;
-import com.example.oj.domain.entity.Question;
-import com.example.oj.domain.vo.QuestionVo;
-import com.example.oj.domain.vo.ResultInfoVO;
+import com.example.oj.mapper.domain.dto.JudgeDTO;
+import com.example.oj.mapper.domain.dto.QuestionDTO;
+import com.example.oj.mapper.domain.entity.Question;
+import com.example.oj.mapper.domain.vo.QuestionVo;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 import java.io.UnsupportedEncodingException;
-import java.util.List;
 
 /**
  * <p>

@@ -1,16 +1,8 @@
-package com.example.oj.domain.vo;
+package com.example.oj.mapper.domain.vo;
 
-import cn.hutool.json.JSONUtil;
-import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
-import com.example.oj.domain.entity.Question;
-import com.example.oj.domain.entity.Tag;
-import com.example.oj.service.impl.QuestionServiceImpl;
+import com.example.oj.mapper.domain.entity.Question;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.experimental.Accessors;
 import org.springframework.beans.BeanUtils;
 
 import java.io.Serializable;

@@ -1,14 +1,23 @@
 package com.example.oj.controller;
 
 
-import com.example.oj.common.ErrorCode;
-import com.example.oj.common.Result;
-import com.example.oj.domain.dto.UserLoginDTO;
-import com.example.oj.domain.dto.UserRegisterDTO;
-import com.example.oj.domain.entity.User;
+import cn.hutool.json.JSONUtil;
+import cn.hutool.system.UserInfo;
+import com.example.oj.common.*;
+import com.example.oj.mapper.domain.dto.UserLoginDTO;
+import com.example.oj.mapper.domain.dto.UserRegisterDTO;
+import com.example.oj.mapper.domain.entity.User;
 import com.example.oj.exception.BusinessException;
-import org.springframework.beans.BeanUtils;
+import com.example.oj.properties.JwtProperties;
+import com.example.oj.service.IUserService;
+import com.example.oj.utils.JwtUtil;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
+
+import javax.annotation.Resource;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * <p>
@@ -21,10 +30,24 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/user")
 public class UserController {
+    @Resource
+    private IUserService userService;
+    @Resource
+    private RedisTemplate redisTemplate;
+    @Resource
+    private JwtProperties jwtProperties;
 //    根据id查找用户（不包含敏感信息）
     @GetMapping("/get/{id}")
-    public Result getUserById(){
-        return null;
+    public Result getUserById(@PathVariable Long id){
+if(id==null){
+    return Result.error(400,"用户不存在");
+}
+   User user = userService.getById(id);
+    if(user==null){
+    return Result.error(400,"用户不存在");
+}
+    user.setPassword("**********");
+        return Result.success(user);
     }
 
     /**
@@ -32,17 +55,62 @@ public class UserController {
      */
     @PostMapping("/register")
     public Result userRegister(@RequestBody UserRegisterDTO userRegisterDTO) {
-//要对密码md5加密  账号要限制长度和数字  邮箱必填
-              return null;
+//要对密码md5加密  账号要限制长度和数字
+          if(userRegisterDTO.getId().length()!=12){
+            throw new BusinessException(400,"账号不符合规范");
+        }
+          if(userRegisterDTO.getId()==null||userRegisterDTO.getPassword()==null){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+         //校验是否纯数字
+        if(!userRegisterDTO.getId().matches("[0-9]+")){
+            throw new BusinessException(400,"账号不符合规范");
+        }
+
+        User user = new User();
+        user.setId(Long.valueOf(userRegisterDTO.getId()));
+        user.setPassword(DigestUtils.md5Hex(userRegisterDTO.getPassword()));
+        boolean isSuccess = userService.save(user);
+        if(isSuccess){
+            return Result.success("注册成功！");
+        }else{
+            return Result.error(400,"注册失败！");
+        }
+
     }
     /**
      * 用户登录
      */
     @PostMapping("/login")
     public Result userLogin(@RequestBody UserLoginDTO userLoginDTO) {
+        System.out.println(userLoginDTO);
+        if(userLoginDTO.getId()==null||userLoginDTO.getPassword()==null){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        if(userLoginDTO.getId().length()!=12){
+            throw new BusinessException(400,"账号不符合规范");
+        }
+         //校验是否纯数字
+        if(!userLoginDTO.getId().matches("[0-9]+")){
+            throw new BusinessException(400,"账号不符合规范");
+        }
+        String s = DigestUtils.md5Hex(userLoginDTO.getPassword());
+//查询用户是否存在
+        User user = userService.lambdaQuery().eq(User::getId, userLoginDTO.getId()).eq(User::getPassword, s).one();
+        if(user==null){
+              throw new BusinessException(400,"用户已存在");
+        }
 
-//        生成jwt+redis存jwt
-        return null;
+//        生成jwt
+        Map<String,Object> claims=new HashMap<>();
+        claims.put(JwtClaimsConstant.USER_ID,user.getId());
+        claims.put(JwtClaimsConstant.USER_TYPE,user.getUserType());
+        String token = JwtUtil.createJWT(jwtProperties.getSecretKey(), jwtProperties.getTtl(), claims);
+//        存redis
+//        先删除旧的token，就是说会把上一个登录同号的人挤下线
+        redisTemplate.opsForValue().getAndDelete(userLoginDTO.getId());
+redisTemplate.opsForValue().set(userLoginDTO.getId(),token,jwtProperties.getTtl());
+    return Result.success(token);
     }
 
     /**
@@ -52,16 +120,22 @@ public class UserController {
     public Result userLogout() {
 //        退出
 //        删除redis中的token使登录无效
-
-     return null;
+        UserInfo user = JSONUtil.toBean(BaseContext.getUserInfo(), UserInfo.class);
+        redisTemplate.opsForValue().getAndDelete(user.getUserId().toString());
+     return Result.success("退出成功");
     }
 
     /**
      * 获取当前登录用户
      */
-    @GetMapping("/get/login")
+    @GetMapping("/get/user")
     public Result getLoginUser() {
-      return null;
+        UserInfo userInfo = JSONUtil.toBean(BaseContext.getUserInfo(), UserInfo.class);
+        User user = userService.getById(userInfo.getUserId());
+//        去掉敏感信息
+        user.setPassword("");
+        user.setUserType("");
+        return Result.success(user);
     }
 
     /**

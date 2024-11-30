@@ -2,7 +2,7 @@ package com.example.oj.service;
 
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.example.oj.domain.entity.Type;
+import com.example.oj.mapper.domain.entity.Type;
 
 /**
  * <p>

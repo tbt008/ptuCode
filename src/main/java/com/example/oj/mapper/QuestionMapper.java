@@ -2,7 +2,7 @@ package com.example.oj.mapper;
 
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.example.oj.domain.entity.Question;
+import com.example.oj.mapper.domain.entity.Question;
 import org.apache.ibatis.annotations.Mapper;
 
 /**

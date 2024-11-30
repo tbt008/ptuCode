@@ -3,18 +3,12 @@ package com.example.oj.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.example.oj.domain.entity.Question;
-import com.example.oj.domain.entity.QuestionTag;
-import com.example.oj.domain.entity.Tag;
+import com.example.oj.mapper.domain.entity.QuestionTag;
+import com.example.oj.mapper.domain.entity.Tag;
 import com.example.oj.mapper.QuestionTagMapper;
-import com.example.oj.mapper.TagMapper;
-import com.example.oj.service.IQuestionService;
 import com.example.oj.service.IQuestionTagService;
 
 import com.example.oj.service.ITagService;
-import net.sf.jsqlparser.statement.select.Select;
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;

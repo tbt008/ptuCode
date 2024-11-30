@@ -28,6 +28,13 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
+<!--jwt依赖-->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt</artifactId>
+            <version>0.9.1</version>
+        </dependency>
+
 <!--        转json-->
         <dependency>
             <groupId>com.alibaba.fastjson2</groupId>
@@ -65,6 +72,12 @@
             <artifactId>hutool-all</artifactId>
             <version>5.7.17</version>
         </dependency>
+<!--        jwt需要的一个依赖-->
+        <dependency>
+    <groupId>javax.xml.bind</groupId>
+    <artifactId>jaxb-api</artifactId>
+    <version>2.3.1</version>
+</dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
