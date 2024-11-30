@@ -8,9 +8,18 @@ import com.example.oj.domain.dto.JudgeDTO;
 import com.example.oj.domain.entity.CodeRecord;
 import com.example.oj.exception.BusinessException;
 import com.example.oj.service.IQuestionService;
+import com.example.oj.service.IQuestionTagService;
+import com.example.oj.service.ITagService;
+import com.example.oj.service.impl.QuestionTagServiceImpl;
+import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.lang.model.SourceVersion;
+import javax.servlet.http.HttpServletRequest;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.io.UnsupportedEncodingException;
 
 
@@ -25,8 +34,12 @@ import java.io.UnsupportedEncodingException;
 @RestController
 @RequestMapping("/question")
 public class QuestionController {
+
     @Resource
-    IQuestionService iQuestionService;
+    private IQuestionService iQuestionService;
+
+    @Resource
+    private IQuestionTagService iQuestionTagService;
 
     /**
      * 提交代码
@@ -62,15 +75,112 @@ public class QuestionController {
 
     /**
      * 搜索题目
+     * @param id
+     * @retrun questionVo
      */
+    @GetMapping("/{question_id}")
+    public Result<QuestionVo> getById(@PathVariable("question_id") Long id, HttpServletRequest request){
+        Question question = iQuestionService.lambdaQuery().eq(Question::getTitleId, id).one();
+        if(question==null){
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+        }
+        return Result.success(iQuestionService.getQuestionVO(question));
+    }
+    /**
+     * 题目列表
+     * @param questionDTO
+     * @retrun Page<QuestionVo>
+     */
+    @PostMapping("/list")
+    public Result<Page<QuestionVo>> QuestionList(@RequestBody QuestionDTO questionDTO, HttpServletRequest request) {
+        if (questionDTO == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        long start = questionDTO.getPageStart();
+        long size = questionDTO.getPageSize();
+
+        Page<Question> questionPage = iQuestionService.page(
+                new Page<>(start, size),
+                iQuestionService.getListWrapper(questionDTO));
+        return Result.success(iQuestionService.getQuestionPageVO(questionPage));
+    }
+
     /**
      * 新增题目（管理员）
+     * @param questionDTO
+     * @retrun questionid
      */
+    @PostMapping("/add")
+    public Result<Long> addQuestion(@RequestBody QuestionDTO questionDTO, HttpServletRequest request) {
+        if (questionDTO == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        // 判断是否存在
+        Boolean st = iQuestionService.lambdaQuery().eq(Question::getTitleId, questionDTO.getTitleId()).exists();
+        if(st==true){
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR,"题目id已经存在");
+        }
+        Question question = new Question();
+        BeanUtils.copyProperties(questionDTO, question);
+        // 参数校验
+        iQuestionService.validQuestion(question);
+
+        List<String> tag_names = questionDTO.getTagNames();
+        if(tag_names!=null){
+            iQuestionTagService.savetag(questionDTO.getTitleId(),tag_names);
+        }
+
+        //TODO judgeCase
+        boolean vis = iQuestionService.save(question);
+        if(vis==false){
+            throw new BusinessException(ErrorCode.OPERATION_ERROR);
+        }
+        long questionid = question.getId();
+        return Result.success(questionid);
+    }
+
     /**
      * 修改题目 （管理员）
+     * @param questionDTO
+     * @return
      */
+    @PutMapping("/update")
+    public Result<Boolean> updateQuestion(@RequestBody QuestionDTO questionDTO,HttpServletRequest request) {
+        if (questionDTO == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        // 判断是否存在
+        Question question = iQuestionService.lambdaQuery().eq(Question::getTitleId, questionDTO.getTitleId()).one();
+        if(question==null){
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR,"题目不存在");
+        }
+        // 参数校验
+        iQuestionService.validQuestion(question);
+
+        List<String> tag_names = questionDTO.getTagNames();
+        if(tag_names!=null){
+            iQuestionTagService.removeBytitleId(questionDTO.getTitleId());
+            iQuestionTagService.savetag(questionDTO.getTitleId(),tag_names);
+        }
+
+        //TODO judgeCase
+        Question nowQuestion = new Question();
+        BeanUtils.copyProperties(questionDTO, nowQuestion);
+        nowQuestion.setId(question.getId());
+        return Result.success(iQuestionService.updateById(nowQuestion));
+    }
      /**
      * 删除题目 （管理员）
+      * @param id
+      * @return
      */
+     @DeleteMapping("/delete/{title_id}")
+     public Result<Boolean> deleteQuestion(@PathVariable("title_id") Long id, HttpServletRequest request) {
+         Question question = iQuestionService.lambdaQuery().eq(Question::getTitleId, id).one();
+         if(question==null){
+             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+         }
+         return Result.success(iQuestionService.removeQuestion(question));
+     }
 
 }

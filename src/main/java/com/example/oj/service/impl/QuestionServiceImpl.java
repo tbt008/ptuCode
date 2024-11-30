@@ -1,13 +1,11 @@
 package com.example.oj.service.impl;
 
 
-import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.oj.common.ErrorCode;
 import com.example.oj.common.Language;
-import com.example.oj.common.TestCaseResult;
 import com.example.oj.domain.dto.JudgeDTO;
 import com.example.oj.domain.entity.CodeRecord;
 import com.example.oj.domain.entity.Question;
@@ -19,6 +17,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpEntity;
+import com.example.oj.service.IQuestionTagService;
+import com.example.oj.utils.SqlUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -55,14 +56,6 @@ import java.util.concurrent.Executors;
  */
 @Service
 public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> implements IQuestionService {
-//    @Override
-//    public void afterPropertiesSet() throws Exception {
-//        String code = "#include <iostream>\nusing namespace std;\n\nint main() {\n    int a, b;\n    cin >> a >> b;\n    cout << a + b << endl;\n    return 0;\n}";
-//        String input = "1 2";
-//        Integer language = Language.CPP.getId();
-//        TestCaseResult outputByInput = getOutputByInput(input, language, code);
-//        System.out.println(outputByInput);
-//    }
 
     private final ExecutorService executorService = Executors.newCachedThreadPool();
 
@@ -72,6 +65,8 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
     @Resource
     private CodeRecordMapper codeRecordMapper;
 
+    @Resource
+    private IQuestionTagService iQuestionTagService;
 
     @Override
     public Long submitQuestion(JudgeDTO judgeDTO) {
@@ -316,8 +311,6 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         return langConfig;
     }
 
-
-
     private HashMap<String, Object> getHashMap(Integer timeLimit, Integer memoryLimit, String code, String questionId, boolean output) {
         HashMap<String, Object> questionMap = new HashMap<>();
         questionMap.put("max_cpu_time", timeLimit);
@@ -339,4 +332,100 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         httpPost.setHeader("X-Judge-Server-Token", "415d45f78c7799b50958fba9934971842612a63911805f5345118264dda7bebc");
         return httpPost;
     }
+    @Override
+    public QuestionVo getQuestionVO(Question question) {
+        QuestionVo questionVO = QuestionVo.potovo(question);
+        //添加标签
+        int titleId = question.getTitleId();
+        List<String> tags = iQuestionTagService.getTagNamesBytitleId(titleId);
+        questionVO.setTags(tags);
+        return questionVO;
+    }
+
+    @Override
+    public Wrapper<Question> getListWrapper(QuestionDTO questionDTO) {
+        QueryWrapper<Question> queryWrapper = new QueryWrapper<>();
+        if (questionDTO == null) {
+            return queryWrapper;
+        }
+        Integer titleId = questionDTO.getTitleId();
+        String titleName = questionDTO.getTitleName();
+        String content = questionDTO.getContent();
+        String answer = questionDTO.getAnswer();
+        Integer createUser = questionDTO.getCreateUser();
+        String sortField = questionDTO.getSortField();
+        String sortOrder = questionDTO.getSortOrder();
+        Integer minScore = questionDTO.getMinscore();
+        Integer maxScore = questionDTO.getMaxscore();
+        List<String>  tagNames=questionDTO.getTagNames();
+        if(tagNames!=null){
+            for(String tagName:tagNames){
+                List<Integer> tid=iQuestionTagService.getTitleIdsbyTagName(tagName);
+                queryWrapper.in(ObjectUtils.isNotEmpty(tid), "title_id", tid);
+            }
+        }
+
+        queryWrapper.eq(ObjectUtils.isNotEmpty(titleId), "title_id", titleId);
+        queryWrapper.like(StringUtils.isNotBlank(titleName), "title_name", titleName);
+        queryWrapper.like(StringUtils.isNotBlank(content), "content", content);
+        queryWrapper.like(StringUtils.isNotBlank(answer), "answer", answer);
+        queryWrapper.eq(ObjectUtils.isNotEmpty(createUser), "create_user", createUser);
+        queryWrapper.ge(ObjectUtils.isNotEmpty(minScore), "score", minScore);
+        queryWrapper.le(ObjectUtils.isNotEmpty(maxScore), "score", maxScore);
+        queryWrapper.eq("is_deleted", false);
+        queryWrapper.orderBy(
+                SqlUtils.isValidOrderBySql(sortField),
+                sortOrder.equals("asc"),
+                sortField
+        );
+        return queryWrapper;
+    }
+
+    @Override
+    public Page<QuestionVo> getQuestionPageVO(Page<Question> questionPage) {
+        List<Question> questionList = questionPage.getRecords();
+        Page<QuestionVo> questionVOPage = new Page<>(questionPage.getCurrent(), questionPage.getSize(), questionPage.getTotal());
+        if (CollectionUtils.isEmpty(questionList)) {
+            return questionVOPage;
+        }
+
+        List<QuestionVo> questionVOList = questionList.stream().map(question -> {
+            QuestionVo questionVO = getQuestionVO(question);
+            return questionVO;
+        }).collect(Collectors.toList());
+        questionVOPage.setRecords(questionVOList);
+        return questionVOPage;
+    }
+
+    @Override
+    public void validQuestion(Question question) {
+        if (question == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        String titlename = question.getTitleName();
+        String content = question.getContent();
+        String tip = question.getTip();
+        String answer = question.getAnswer();
+        // 参数校验
+        if (StringUtils.isNotBlank(titlename) && titlename.length() > 93) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "标题过长");
+        }
+        if (StringUtils.isNotBlank(content) && content.length() > 2993) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "内容过长");
+        }
+        if (StringUtils.isNotBlank(tip) && tip.length() > 493) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "提示过长");
+        }
+        if (StringUtils.isNotBlank(answer) && answer.length() > 2993) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "答案过长");
+        }
+    }
+
+    @Override
+    public boolean removeQuestion(Question question) {
+        int titleId = question.getTitleId();
+        removeById(question.getId());
+        return iQuestionTagService.removeBytitleId(titleId);
+    }
+
 }
