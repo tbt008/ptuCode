@@ -3,12 +3,15 @@ package com.example.oj.controller;
 
 import com.example.oj.common.ErrorCode;
 import com.example.oj.common.Result;
+import com.example.oj.common.TestCaseResult;
 import com.example.oj.domain.dto.JudgeDTO;
+import com.example.oj.domain.entity.CodeRecord;
 import com.example.oj.exception.BusinessException;
 import com.example.oj.service.IQuestionService;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.io.UnsupportedEncodingException;
 
 
 /**
@@ -42,7 +45,19 @@ public class QuestionController {
     }
 
 
-
+    /**
+     * 获得测试样例
+     * @param input
+     * @return
+     */
+    @PostMapping("/test")
+    public Result<TestCaseResult> submitQuestionTest(@RequestBody String input, @RequestBody Integer language, @RequestBody String code) throws UnsupportedEncodingException {
+        if (input==null) {
+            input = "";
+        }
+        TestCaseResult answer = iQuestionService.getOutputByInput(input, language, code);
+        return Result.success(answer);
+    }
 
 
     /**

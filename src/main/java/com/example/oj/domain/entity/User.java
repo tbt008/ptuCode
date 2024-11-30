@@ -133,6 +133,8 @@ public class User implements Serializable {
     @TableField("is_deleted")
     private Integer isDeleted;
 
+    @TableField("class_name")
+    private String className;
 
 
 }

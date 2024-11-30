@@ -18,32 +18,39 @@ import java.util.List;
 public class CodeRecordController {
     @Resource
     ICodeRecordService codeRecordService;
-/**
- * 查询当前用户所有提交记录
- */
-@GetMapping("/get/all")
-    public Result<CodeRecordVO> getAllRecord(){
-     return null;
-};
-/**
- * 查询当前用户对题目id的所有提交记录
- */
-@GetMapping("/get/list/{id}")
-    public Result<CodeRecordVO> getRecordByUid(@PathVariable Long id){
-    return null;
-};
-/**
- * 查询当前用户对题目id最新的提交记录
- */
- @GetMapping("/get/one/{id}")
+    /**
+     * 查询当前用户所有提交记录
+     */
+    @GetMapping("/get/all")
+        public Result<CodeRecordVO> getAllRecord(){
+         return null;
+    };
+    /**
+     * 查询当前用户对题目id的所有提交记录
+     */
+    @GetMapping("/get/list/{id}")
+        public Result<CodeRecordVO> getRecordByUid(@PathVariable Long id){
+        return null;
+    };
+    /**
+    * 查询当前用户对题目id最新的提交记录
+    */
+    @GetMapping("/get/one/{id}")
     public Result codeRecordGetById(@PathVariable Long id) throws Exception {
         CodeRecord score = codeRecordService.codeRecordGetById(id);
         return Result.success(score);
     }
 
+    /**
+     * 查询提交的详细测试点信息
+     * @param submissionId
+     * @return
+     */
     @GetMapping("/get/commits/{submissionId}")
     public Result<List<TestCaseResult>> getRecordBySubmissionId(@PathVariable Long submissionId) {
         List<TestCaseResult> testCaseResultListBySubmissionId = codeRecordService.getTestCaseResultListBySubmissionId(submissionId);
         return Result.success(testCaseResultListBySubmissionId);
     }
+
+
 }

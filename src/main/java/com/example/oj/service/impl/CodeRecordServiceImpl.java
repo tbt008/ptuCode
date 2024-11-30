@@ -11,7 +11,6 @@ import com.example.oj.service.ICodeRecordService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -122,5 +121,4 @@ public class CodeRecordServiceImpl extends ServiceImpl<CodeRecordMapper, CodeRec
         }
         return null;
     }
-
 }
