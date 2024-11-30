@@ -1,16 +1,15 @@
 package com.example.oj.domain.dto;
 
-import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.experimental.Accessors;
 
 @Data
-@EqualsAndHashCode(callSuper = false)
-@Accessors(chain = true)
-@TableName("AI")
 public class ChatDTO {
 
+
+    /**
+     * 用户id
+     */
+    private String id;
     /**
      * 内容
      */
@@ -19,5 +18,5 @@ public class ChatDTO {
     /**
      * 选择的智能体
      */
-    private String Ai;
+    private String ai;
 }
