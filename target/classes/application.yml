@@ -1,0 +1,22 @@
+server:
+  port: 9090
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://60.205.254.145:3306/online?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
+    username: tbt
+    password: 123456
+    hikari:
+      max-lifetime: 60000
+ptu:
+  jwt:
+    # 设置jwt签名加密时使用的秘钥
+    secret-key: ptu_code_i_love_you
+    # 设置jwt过期时间
+    ttl: 7200000
+    # 设置前端传递过来的令牌名称
+    token-name: authentication
+  redis:
+    host: 120.26.170.155
+    port: 6379
+    database: 1
