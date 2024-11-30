@@ -16,9 +16,12 @@ import com.example.oj.service.IQuestionTagService;
 import org.springframework.beans.BeanUtils;
 
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import java.io.UnsupportedEncodingException;
@@ -187,4 +190,17 @@ public class QuestionController {
          return Result.success(iQuestionService.removeQuestion(question));
      }
 
+    /**
+     * 根据题目id上传测试数据
+     * @param file
+     * @param questionId
+     * @return
+     * @throws IOException
+     */
+     @PostMapping("/savefile")
+     public Result<Integer> saveQuestionFile(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("path") Integer questionId) throws IOException {
+         return Result.success(iQuestionService.saveFile(questionId, file));
+     }
 }

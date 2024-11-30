@@ -37,6 +37,7 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.entity.mime.content.InputStreamBody;
 import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -45,12 +46,10 @@ import org.apache.http.util.EntityUtils;
 
 import org.springframework.stereotype.Service;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -253,8 +252,6 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
             // 打印响应状态码
             String strResult = EntityUtils.toString(response.getEntity());
             int statusCode = response.getStatusLine().getStatusCode();
-            System.out.println("Response Code: " + statusCode);
-            System.out.println(strResult);
         } catch (ClientProtocolException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {
@@ -279,11 +276,6 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         httpPost.setHeader("Accept", "application/json");
 
         MultipartEntityBuilder builder = MultipartEntityBuilder.create();
-        if (file.exists() && file.length() > 0) {
-            System.out.println("File exists and has content.");
-        } else {
-            System.out.println("File does not exist or is empty.");
-        }
         builder.addPart("file", new FileBody(file));  // 添加文件
         builder.addPart("path", new StringBody(path));  // 添加路径字段（传递路径参数）
 
@@ -298,8 +290,42 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
             // 打印响应状态码
             String strResult = EntityUtils.toString(response.getEntity());
             int statusCode = response.getStatusLine().getStatusCode();
-            System.out.println("Response Code: " + statusCode);
-            System.out.println(strResult);
+        } catch (ClientProtocolException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+
+    public int saveFile(Integer questionId, MultipartFile file) throws IOException {
+
+        String url = "http://120.26.170.155:12138/upload";
+        HttpPost httpPost = new HttpPost(url);
+        // 设置请求头
+        httpPost.setHeader("Accept", "application/json");
+
+        MultipartEntityBuilder builder = MultipartEntityBuilder.create();// 处理文件上传
+        if (file != null && !file.isEmpty()) {
+            // 通过 InputStreamBody 添加文件
+            InputStream inputStream = file.getInputStream();
+            builder.addPart("file", new InputStreamBody(inputStream, file.getOriginalFilename()));
+        }
+        builder.addPart("path", new StringBody(questionId.toString()));  // 添加路径字段（传递路径参数）
+
+
+        // 将构建的请求体设置到 HttpPost 中
+        HttpEntity entity = builder.build();
+        httpPost.setEntity(entity);
+
+        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+            HttpResponse response = httpClient.execute(httpPost);  // 执行请求
+
+            // 打印响应状态码
+            String strResult = EntityUtils.toString(response.getEntity());
+            int statusCode = response.getStatusLine().getStatusCode();
+            return statusCode;
         } catch (ClientProtocolException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {

@@ -11,7 +11,10 @@ import com.example.oj.domain.entity.Question;
 import com.example.oj.domain.vo.QuestionVo;
 
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
 /**
@@ -37,4 +40,6 @@ public interface IQuestionService extends IService<Question> {
 
     boolean removeQuestion(Question question);
     TestCaseResult getOutputByInput(String input, Integer language, String code) throws UnsupportedEncodingException;
+
+    public int saveFile(Integer questionId, MultipartFile file) throws IOException;
 }
