@@ -10,9 +10,6 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
 
-
-import java.util.List;
-
 /**
  * 配置类，注册web层相关组件
  */
