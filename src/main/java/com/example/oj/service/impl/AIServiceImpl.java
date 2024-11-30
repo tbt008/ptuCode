@@ -57,9 +57,8 @@ public class AIServiceImpl extends ServiceImpl<AIMapper, ChatHistory> implements
     /**
      * 讯飞星火
      *
-     * @param Id
-     * @param content
-     * @return
+     * @param Id 用户id
+     * @param content 用户聊天
      */
     public Result XinHuoChat(String Id, String content) {
         Id += "XingHuoFCT";
@@ -74,7 +73,7 @@ public class AIServiceImpl extends ServiceImpl<AIMapper, ChatHistory> implements
 
         if (existingChatHistory != null) {
             flag = true;
-            LocalDateTime timestamp = existingChatHistory.getTimestamp();  // 假设这个字段是 LocalDateTime 类型
+            LocalDateTime timestamp = existingChatHistory.getTimestamp();
 
             if (timestamp != null) {
                 // 获取当前时间
@@ -84,38 +83,33 @@ public class AIServiceImpl extends ServiceImpl<AIMapper, ChatHistory> implements
                 Duration duration = Duration.between(timestamp, currentTime);
                 if (duration.toHours() >= 6) {
                     // 如果超过6小时，则清空聊天记录
-                    aiMapper.deleteById(existingChatHistory.getId());  // 假设 existingChatHistory 有 id 字段
+                    aiMapper.deleteById(existingChatHistory.getId());
                     flag = false;
                     log.info("聊天缓存超时，已清除");
                 }
             }
             String chatText = existingChatHistory.getChatText();
-            if (chatText.length() > MAX_CHAT_HISTORY_SIZE) {  // 这里的 MAX_CHAT_HISTORY_SIZE 是您设置的最大长度
+            if (chatText.length() > MAX_CHAT_HISTORY_SIZE) {
                 // 清空聊天记录
-                aiMapper.deleteById(existingChatHistory.getId());  // 假设 existingChatHistory 有 id 字段
+                aiMapper.deleteById(existingChatHistory.getId());
                 log.info("聊天缓存过多，已清除");
                 return Result.error("聊天缓存过多，已清除,请刷新重试");
             }
             if(flag)chatHistoryArray = JSONArray.parseArray(existingChatHistory.getChatText());
         }
 
-        // Create the user message as a JSONObject
         JSONObject userMessage = new JSONObject();
         userMessage.put("role", "user");
         userMessage.put("content", content);
 
-        // Add user's message to the chat history array
         chatHistoryArray.add(userMessage);
-
-        // Send message to the AI and get the response
+        // TODO 报错的情况要单独分析
         String botResponse = sendMessageToAPI(chatHistoryArray.toString());
 
-        // Create the assistant's response as a JSONObject
         JSONObject assistantMessage = new JSONObject();
         assistantMessage.put("role", "assistant");
         assistantMessage.put("content", botResponse);
 
-        // Add assistant's message to the chat history array
         chatHistoryArray.add(assistantMessage);
 
         if (flag) {
@@ -141,28 +135,24 @@ public class AIServiceImpl extends ServiceImpl<AIMapper, ChatHistory> implements
         try {
             String url = XH_URL;
 
-            // Prepare the data to send to the API
             String jsonData = "{\n" +
                     "    \"model\": \""+ DOMAIN +"\",\n" +
-                    "    \"messages\": " + chatHistory + ",\n" +  // Send the formatted chat history as part of the request
+                    "    \"messages\": " + chatHistory + ",\n" +
                     "    \"stream\": false\n" +
                     "}";
 
-            // Create URL object
             URL urlObj = new URL(url);
             HttpURLConnection connection = (HttpURLConnection) urlObj.openConnection();
             connection.setRequestMethod("POST");
-            connection.setRequestProperty("Authorization", "Bearer "+XH_API_token); // Replace with your actual API token
+            connection.setRequestProperty("Authorization", "Bearer "+XH_API_token);
             connection.setRequestProperty("Content-Type", "application/json");
             connection.setDoOutput(true);
 
-            // Send the request payload
             try (OutputStream os = connection.getOutputStream()) {
                 byte[] input = jsonData.getBytes("utf-8");
                 os.write(input, 0, input.length);
             }
 
-            // Get the response and parse it
             StringBuilder responseBuilder = new StringBuilder();
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), "utf-8"))) {
                 String line;
@@ -171,7 +161,6 @@ public class AIServiceImpl extends ServiceImpl<AIMapper, ChatHistory> implements
                 }
             }
 
-            // Parse the response and extract assistant's message
             JSONObject jsonResponse = JSONObject.parseObject(responseBuilder.toString());
             JSONArray choices = jsonResponse.getJSONArray("choices");
             JSONObject message = choices.getJSONObject(0).getJSONObject("message");
@@ -179,14 +168,14 @@ public class AIServiceImpl extends ServiceImpl<AIMapper, ChatHistory> implements
 
         } catch (Exception e) {
             e.printStackTrace();
-            return "发生错误: " + e.getMessage();
+            JSONObject errorJson = new JSONObject();
+            errorJson.put("error", "请求失败: " + e.getMessage());
+            return errorJson.toString(); // 返回 JSON 格式字符串
         }
     }
 
     /**
      * 智谱清言
-     * @param content
-     * @return
      */
 
 
@@ -298,8 +287,7 @@ public class AIServiceImpl extends ServiceImpl<AIMapper, ChatHistory> implements
 
     /**
      *
-     * @param userDialogues
-     * @return
+     * @param userDialogues  聊天记录
      */
 
     private static String sendRequest(String userDialogues) {
