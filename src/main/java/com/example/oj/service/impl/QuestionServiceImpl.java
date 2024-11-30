@@ -35,6 +35,7 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.InputStreamBody;
@@ -50,6 +51,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -102,7 +104,8 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         codeRecord.setCode(judgeDTO.getCode());
         codeRecord.setLanguage(language);
         codeRecord.setQuestionId(judgeDTO.getQuestionId());
-        codeRecord.setUserId( BaseContext.getUserInfo().getUserId());
+//        codeRecord.setUserId( BaseContext.getUserInfo().getUserId());
+        codeRecord.setUserId(1L);
 
         LocalDateTime now = LocalDateTime.now();
         codeRecord.setCreateTime(now);
@@ -221,10 +224,6 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
             throw new RuntimeException(e);
         } finally {
             deleteFolder(testCaseId);
-            File in = new File("1.in");
-            File out = new File("1.out");
-            in.delete();
-            out.delete();
         }
         TestCaseResult testCaseResult = new TestCaseResult();
         testCaseResult.setError(-12);
@@ -263,12 +262,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
 
     private void uploadFile(String path, String filename, String input) throws UnsupportedEncodingException {
 
-        File file = new File(filename);
-        try (FileWriter writer = new FileWriter(file)) {
-            writer.write(input);  // 将 input 字符串写入文件
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(input.getBytes(StandardCharsets.UTF_8));
 
         String url = "http://120.26.170.155:12138/upload";
         HttpPost httpPost = new HttpPost(url);
@@ -276,7 +270,9 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         httpPost.setHeader("Accept", "application/json");
 
         MultipartEntityBuilder builder = MultipartEntityBuilder.create();
-        builder.addPart("file", new FileBody(file));  // 添加文件
+
+        // 使用 InputStreamBody 直接传输流数据
+        builder.addPart("file", new InputStreamBody(byteArrayInputStream, ContentType.APPLICATION_OCTET_STREAM, filename));  // 通过流传输文件
         builder.addPart("path", new StringBody(path));  // 添加路径字段（传递路径参数）
 
 
