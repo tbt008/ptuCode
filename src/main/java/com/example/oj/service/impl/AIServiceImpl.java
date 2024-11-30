@@ -103,9 +103,10 @@ public class AIServiceImpl extends ServiceImpl<AIMapper, ChatHistory> implements
         userMessage.put("content", content);
 
         chatHistoryArray.add(userMessage);
-        // TODO 报错的情况要单独分析
         String botResponse = sendMessageToAPI(chatHistoryArray.toString());
-
+        if (botResponse.startsWith("请求失败114514:")) {
+            return Result.error("API请求失败，错误信息: " + botResponse.substring("请求失败114514:".length()));
+        }
         JSONObject assistantMessage = new JSONObject();
         assistantMessage.put("role", "assistant");
         assistantMessage.put("content", botResponse);
@@ -168,9 +169,7 @@ public class AIServiceImpl extends ServiceImpl<AIMapper, ChatHistory> implements
 
         } catch (Exception e) {
             e.printStackTrace();
-            JSONObject errorJson = new JSONObject();
-            errorJson.put("error", "请求失败: " + e.getMessage());
-            return errorJson.toString(); // 返回 JSON 格式字符串
+            return "请求失败114514: " + e.getMessage(); // 返回 JSON 格式字符串
         }
     }
 
@@ -341,7 +340,7 @@ public class AIServiceImpl extends ServiceImpl<AIMapper, ChatHistory> implements
             //这里不能直接返回e，因为需要json格式字符串，否则解析出问题
             JSONObject errorJson = new JSONObject();
             errorJson.put("error", "请求失败: " + e.getMessage());
-            return errorJson.toString(); // 返回 JSON 格式字符串
+            return "请求失败: " + e.getMessage();
         }
     }
 
