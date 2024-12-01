@@ -7,10 +7,10 @@ import java.util.List;
 
 public interface IContestService {
 
-    Contest getContestById(int id);
+    Contest getContestById(Long id);
 
     List<ContestOverviewVO> getContestOverviewVOByPageAndPageNum(int page, int pageNum);
 
-    Integer isInvite(Integer contestId);
+    Integer isInvite(Long contestId);
 
 }

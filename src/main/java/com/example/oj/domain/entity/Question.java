@@ -27,7 +27,7 @@ public class Question implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @TableId(value = "id", type = IdType.ASSIGN_ID)
-    private Integer id;
+    private Long id;
 
     /**
      * 题目id
@@ -97,12 +97,6 @@ public class Question implements Serializable {
      */
     @TableField("pass_person")
     private Integer passPerson;
-
-    /**
-     * 判断题目的测试用例
-     */
-    @TableField("judge_case")
-    private String judgeCase;
 
     /**
      * 答案

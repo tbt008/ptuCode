@@ -2,6 +2,7 @@ package com.example.oj.domain.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -16,35 +17,35 @@ import java.time.LocalDateTime;
 public class Contest {
 
     @TableId(value = "id", type = IdType.AUTO)
-    private int id; // 主键
+    private Long id; // 主键
 
-    @TableId(value = "name")
+    @TableField(value = "name")
     private String name; // 比赛昵称
 
-    @TableId(value = "create_user")
+    @TableField(value = "create_user")
     private int createUser; // 创建人
 
-    @TableId(value = "start_time")
+    @TableField(value = "start_time")
     private LocalDateTime startTime; // 比赛开始时间
 
-    @TableId(value = "end_time")
+    @TableField(value = "end_time")
     private LocalDateTime endTime; // 比赛结束时间
 
-    @TableId(value = "problem_id")
+    @TableField(value = "problem_id")
     private String problemId; // 比赛题目json存储
 
-    @TableId(value = "announcement")
+    @TableField(value = "announcement")
     private String announcement; // 比赛公告
 
-    @TableId(value = "password")
+    @TableField(value = "password")
     private String password; // 比赛密码
 
-    @TableId(value = "id_deleted")
+    @TableField(value = "id_deleted")
     private Boolean idDeleted; // 是否删除
 
-    @TableId(value = "create_time")
+    @TableField(value = "create_time")
     private LocalDateTime createTime; // 创建时间
 
-    @TableId(value = "is_invite")
+    @TableField(value = "is_invite")
     private Boolean isInvite; // 是否需要教师导入才能比赛
 }

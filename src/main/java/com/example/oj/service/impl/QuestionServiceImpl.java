@@ -3,6 +3,7 @@ package com.example.oj.service.impl;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
+import com.alibaba.fastjson2.TypeReference;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -327,6 +328,18 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public List<Question> getQuestionList(List<Long> questionId) {
+        if (questionId == null) {
+            throw new RuntimeException("questionId is null");
+        }
+        List<Question> questionList = questionMapper.selectBatchIds(questionId);
+        if (questionList == null || questionList.size() == 0) {
+            throw new RuntimeException("questionList is null");
+        }
+        return questionList;
     }
 
     private String getLanguageConfig (Integer language) {

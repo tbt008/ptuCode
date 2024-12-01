@@ -1,4 +1,4 @@
-package com.example.oj.common;
+package com.example.oj.utils;
 
 import org.springframework.beans.BeanInstantiationException;
 import org.springframework.beans.BeanUtils;

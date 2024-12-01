@@ -1,7 +1,10 @@
 package com.example.oj.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.example.oj.common.ConvertBeanUtils;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.example.oj.exception.BusinessException;
+import com.example.oj.utils.ConvertBeanUtils;
 import com.example.oj.domain.entity.Contest;
 import com.example.oj.domain.entity.ContestUser;
 import com.example.oj.domain.entity.User;
@@ -10,13 +13,14 @@ import com.example.oj.mapper.ContestMapper;
 import com.example.oj.mapper.ContestUserMapper;
 import com.example.oj.mapper.UserMapper;
 import com.example.oj.service.IContestService;
-import com.github.pagehelper.PageHelper;
+import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.util.List;
 import java.util.Objects;
 
+@Service
 public class ContestServiceImpl implements IContestService {
 
     @Resource
@@ -29,10 +33,13 @@ public class ContestServiceImpl implements IContestService {
     private ContestUserMapper contestUserMapper;
 
     @Override
-    public Contest getContestById(int contestId) {
+    public Contest getContestById(Long contestId) {
 
         Contest contest = contestMapper.selectById(contestId);
         // 没被邀请过不返回题目
+        if (contest == null) {
+            throw new BusinessException(406, "contest is error");
+        }
         if (isInvite(contestId) != 0) {
             contest.setProblemId(null);
         }
@@ -42,7 +49,8 @@ public class ContestServiceImpl implements IContestService {
 
     @Override
     public List<ContestOverviewVO> getContestOverviewVOByPageAndPageNum(int page, int pageSize) {
-        PageHelper.startPage(page, pageSize);
+
+        Page<Contest> contestPage = new Page<>(page, pageSize);
 
         QueryWrapper<Contest> queryWrapper = new QueryWrapper<>();
         // 按开始时间倒序排序
@@ -50,7 +58,10 @@ public class ContestServiceImpl implements IContestService {
         // 去掉删除掉的比赛
         queryWrapper.eq("id_deleted", false);
         // 查找
-        List<Contest> contests = contestMapper.selectList(queryWrapper);
+        IPage<Contest> pageResult = contestMapper.selectPage(contestPage, queryWrapper);
+
+        // 获取查询结果
+        List<Contest> contests = pageResult.getRecords();
 
         // 获取大众信息
         List<ContestOverviewVO> contestOverviewVOS = ConvertBeanUtils.convertList(contests, ContestOverviewVO.class);
@@ -64,7 +75,7 @@ public class ContestServiceImpl implements IContestService {
      * @return
      */
     @Override
-    public Integer isInvite(Integer contestId) {
+    public Integer isInvite(Long contestId) {
         //TODO 获取用户id判断能不能进
         int userId = 1;
         User user = userMapper.selectById(userId);

@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.util.List;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Map;
 
 
 /**
@@ -202,4 +203,12 @@ public class QuestionController {
             @RequestParam("path") Integer questionId) throws IOException {
          return Result.success(iQuestionService.saveFile(questionId, file));
      }
+
+
+     @PostMapping("/questionlist")
+    public Result questionList(@RequestBody Map<String, List<Long>> questionId) {
+         List<Long> list = questionId.get("questionId");
+         return Result.success(iQuestionService.getQuestionList(list));
+     }
+
 }

@@ -9,5 +9,5 @@ import org.apache.ibatis.annotations.Select;
 public interface ContestUserMapper extends BaseMapper<ContestUser> {
 
     @Select("select from where contest = #{contestId} and user_id = #{userId}")
-    ContestUser getByContestIdAndUserId(Integer contestId, Long userId);
+    ContestUser getByContestIdAndUserId(Long contestId, Long userId);
 }

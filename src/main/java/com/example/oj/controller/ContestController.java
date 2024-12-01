@@ -21,12 +21,15 @@ public class ContestController {
     }
 
     @GetMapping("/racepage/{contestId}")
-    private Result racepage(@PathVariable Integer contestId) {
+    private Result racepage(@PathVariable Long contestId) {
+        if (contestId == null) {
+            return Result.error("contestId is null");
+        }
         return Result.success(contestService.getContestById(contestId));
     }
 
     @PostMapping("isinvite")
-    private Result isvited(@RequestBody Integer contestId) {
+    private Result isvited(@RequestBody Long contestId) {
         return Result.success(contestService.isInvite(contestId));
     }
 }
