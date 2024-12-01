@@ -22,7 +22,7 @@ public class CodeRecordController {
      * 查询当前用户所有提交记录
      */
     @GetMapping("/get/all")
-        public Result<CodeRecordVO> getAllRecord(){
+    public Result<CodeRecordVO> getAllRecord(){
          return null;
     };
     /**
@@ -51,6 +51,5 @@ public class CodeRecordController {
         List<TestCaseResult> testCaseResultListBySubmissionId = codeRecordService.getTestCaseResultListBySubmissionId(submissionId);
         return Result.success(testCaseResultListBySubmissionId);
     }
-
 
 }

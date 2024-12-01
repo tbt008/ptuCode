@@ -1,10 +1,5 @@
 package com.example.oj.common;
 
-
-
-
-
-
 public enum Language {
     C(1, "C" ,"{\n" +
             "  \"language_config\": {\n" +

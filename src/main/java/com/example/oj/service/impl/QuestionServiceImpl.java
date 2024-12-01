@@ -195,8 +195,8 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
 
             // 设置请求的超时配置
             RequestConfig requestConfig = RequestConfig.custom()
-                    .setSocketTimeout(6000)
-                    .setConnectTimeout(6000)
+                    .setSocketTimeout(10000)
+                    .setConnectTimeout(10000)
                     .build();
             httpPost.setConfig(requestConfig);
             HttpResponse response = httpClient.execute(httpPost);
