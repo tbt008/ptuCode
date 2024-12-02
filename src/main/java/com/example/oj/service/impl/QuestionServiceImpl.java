@@ -297,7 +297,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
 
 
 
-    public int saveFile(Integer questionId, MultipartFile file) throws IOException {
+    public int saveFile(Long questionId, MultipartFile file) throws IOException {
 
         String url = "http://120.26.170.155:12138/upload";
         HttpPost httpPost = new HttpPost(url);
@@ -398,7 +398,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         String titleName = questionDTO.getTitleName();
         String content = questionDTO.getContent();
         String answer = questionDTO.getAnswer();
-        Integer createUser = questionDTO.getCreateUser();
+        Long createUser = questionDTO.getCreateUser();
         String sortField = questionDTO.getSortField();
         String sortOrder = questionDTO.getSortOrder();
         Integer minScore = questionDTO.getMinscore();

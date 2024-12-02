@@ -109,7 +109,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             user.setUserName(name);
             user.setNickName(name);
             user.setPassword(DigestUtils.md5Hex(idString));
-            user.setUserType("1");
+            user.setUserType(0L);
             user.setSolveEasy(0);
             user.setSolveMiddle(0);
             user.setSolveHard(0);

@@ -90,7 +90,7 @@ public class User implements Serializable {
      * 用户类型（0管理员，1普通用户）
      */
     @TableField("user_type")
-    private String userType;
+    private Long userType;
 
     /**
      * 创建时间

@@ -1,10 +1,14 @@
 package com.example.oj.controller;
 
+import com.example.oj.common.ErrorCode;
 import com.example.oj.common.PageLimit;
+import com.example.oj.common.Permission;
 import com.example.oj.common.Result;
 import com.example.oj.domain.dto.UserRegisterDTO;
 import com.example.oj.domain.vo.UserRegisterVO;
+import com.example.oj.exception.BusinessException;
 import com.example.oj.service.IUserService;
+import com.example.oj.utils.PermissionUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,6 +25,7 @@ public class RootController {
     @Resource
     private IUserService userService;
 
+    PermissionUtils permissionUtils;
     /**
      * 根据id查找用户所有信息
      */
@@ -64,12 +69,14 @@ public class RootController {
 
     /**
      * 管理员excel批量导入人数
-     *
      * @return
      */
     @PostMapping("/registerbatch")
     public Result registerBatch(@RequestParam("file") MultipartFile file) throws IOException {
-        // TODO 判断当前操作用户是否为管理员
+
+        if (!permissionUtils.UserController()) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
         List<UserRegisterVO> registerVOList = userService.registerBatch(file);
         if (registerVOList == null || registerVOList.isEmpty()) {
             return Result.success();

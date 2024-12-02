@@ -40,7 +40,7 @@ public interface IQuestionService extends IService<Question> {
     boolean removeQuestion(Question question);
     TestCaseResult getOutputByInput(String input, Integer language, String code) throws UnsupportedEncodingException;
 
-    int saveFile(Integer questionId, MultipartFile file) throws IOException;
+    int saveFile(Long questionId, MultipartFile file) throws IOException;
 
     List<Question> getQuestionList(List<Long> questionId);
 }

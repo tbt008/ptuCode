@@ -13,7 +13,7 @@ import lombok.experimental.Accessors;
 public class ContestUser {
 
     @TableField("contest") // 指定数据库中的字段名
-    private Integer contest; // 比赛id
+    private Long contest; // 比赛id
 
     @TableField("user_id")
     private Long userId; // 用户id

@@ -148,7 +148,7 @@ public class UserController {
         User user = userService.getById(userInfo.getUserId());
         // 去掉敏感信息
         user.setPassword("");
-        user.setUserType("");
+        user.setUserType(null);
         return Result.success(user);
     }
 

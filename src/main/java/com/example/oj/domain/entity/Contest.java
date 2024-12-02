@@ -23,7 +23,7 @@ public class Contest {
     private String name; // 比赛昵称
 
     @TableField(value = "create_user")
-    private int createUser; // 创建人
+    private Long createUser; // 创建人
 
     @TableField(value = "start_time")
     private LocalDateTime startTime; // 比赛开始时间

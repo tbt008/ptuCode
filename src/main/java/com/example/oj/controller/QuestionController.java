@@ -2,10 +2,7 @@ package com.example.oj.controller;
 
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.example.oj.common.ErrorCode;
-import com.example.oj.common.InputCase;
-import com.example.oj.common.Result;
-import com.example.oj.common.TestCaseResult;
+import com.example.oj.common.*;
 import com.example.oj.domain.dto.JudgeDTO;
 import com.example.oj.domain.dto.QuestionDTO;
 import com.example.oj.domain.entity.Question;
@@ -13,6 +10,7 @@ import com.example.oj.domain.vo.QuestionVo;
 import com.example.oj.exception.BusinessException;
 import com.example.oj.service.IQuestionService;
 import com.example.oj.service.IQuestionTagService;
+import com.example.oj.utils.PermissionUtils;
 import org.springframework.beans.BeanUtils;
 
 import org.springframework.web.bind.annotation.*;
@@ -45,6 +43,8 @@ public class QuestionController {
 
     @Resource
     private IQuestionTagService iQuestionTagService;
+
+    private PermissionUtils permissionUtils;
 
     /**
      * 提交代码
@@ -88,6 +88,11 @@ public class QuestionController {
     @GetMapping("/{question_id}")
     public Result<QuestionVo> getById(@PathVariable("question_id") Long id, HttpServletRequest request){
         Question question = iQuestionService.lambdaQuery().eq(Question::getTitleId, id).one();
+        if (question.getStatus() == 1) {
+            if (!permissionUtils.problemController(question.getId())) {
+                question = null;
+            }
+        }
         if(question==null){
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
         }
@@ -122,6 +127,9 @@ public class QuestionController {
         if (questionDTO == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
+        if (!permissionUtils.problemController()) {
+            throw new BusinessException(ErrorCode.PERMISSION_ERROR);
+        }
         // 判断是否存在
         Boolean st = iQuestionService.lambdaQuery().eq(Question::getTitleId, questionDTO.getTitleId()).exists();
         if(st==true){
@@ -153,8 +161,12 @@ public class QuestionController {
      */
     @PutMapping("/update")
     public Result<Boolean> updateQuestion(@RequestBody QuestionDTO questionDTO,HttpServletRequest request) {
+
         if (questionDTO == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        if (!permissionUtils.problemController(questionDTO.getCreateUser())) {
+            throw new BusinessException(ErrorCode.PERMISSION_ERROR);
         }
         // 判断是否存在
         Question question = iQuestionService.lambdaQuery().eq(Question::getTitleId, questionDTO.getTitleId()).one();
@@ -184,6 +196,11 @@ public class QuestionController {
      @DeleteMapping("/delete/{title_id}")
      public Result<Boolean> deleteQuestion(@PathVariable("title_id") Long id, HttpServletRequest request) {
          Question question = iQuestionService.lambdaQuery().eq(Question::getTitleId, id).one();
+
+         if (!permissionUtils.problemController(question.getCreateUser())) {
+             throw new BusinessException(ErrorCode.PERMISSION_ERROR);
+         }
+
          if(question==null){
              throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
          }
@@ -198,16 +215,31 @@ public class QuestionController {
      * @throws IOException
      */
      @PostMapping("/savefile")
-     public Result<Integer> saveQuestionFile(
-            @RequestParam("file") MultipartFile file,
-            @RequestParam("path") Integer questionId) throws IOException {
+     public Result<Integer> saveQuestionFile(@RequestParam("file") MultipartFile file, @RequestParam("path") Long questionId) throws IOException {
+
+         Question question = iQuestionService.lambdaQuery().eq(Question::getId, questionId).one();
+
+         if (!permissionUtils.problemController(question.getCreateUser())) {
+             throw new BusinessException(ErrorCode.PERMISSION_ERROR);
+         }
+
          return Result.success(iQuestionService.saveFile(questionId, file));
      }
 
-
+    /**
+     * 获取题目详细列表
+     * @param questionId
+     * @return
+     */
      @PostMapping("/questionlist")
-    public Result questionList(@RequestBody Map<String, List<Long>> questionId) {
+     public Result questionList(@RequestBody Map<String, List<Long>> questionId) {
          List<Long> list = questionId.get("questionId");
+         List<Question> questionList = iQuestionService.getQuestionList(list);
+         for (Question question : questionList) {
+             if (question.getStatus() == 1) {
+                 question.setAnswer("");
+             }
+         }
          return Result.success(iQuestionService.getQuestionList(list));
      }
 

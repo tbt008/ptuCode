@@ -78,7 +78,7 @@ public class Question implements Serializable {
      * 创建人
      */
     @TableField("create_user")
-    private Integer createUser;
+    private Long createUser;
 
     /**
      * 难度

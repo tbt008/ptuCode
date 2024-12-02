@@ -26,7 +26,7 @@ public class QuestionDTO extends PageLimit implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @TableId(value = "id", type = IdType.AUTO)
-    private Integer id;
+    private Long id;
 
     /**
      * 题目id
@@ -62,7 +62,7 @@ public class QuestionDTO extends PageLimit implements Serializable {
     /**
      * 创建人
      */
-    private Integer createUser;
+    private Long createUser;
 
     /**
      * 难度
