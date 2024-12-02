@@ -123,25 +123,4 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         // 返回插入不成功的
         return list;
     }
-
-
-    // MD5加密方法
-    public static String encryptPassword(String password) {
-        try {
-            // 创建MessageDigest实例并指定使用MD5算法
-            MessageDigest md = MessageDigest.getInstance("MD5");
-            // 执行MD5加密
-            byte[] bytes = md.digest(password.getBytes());
-
-            // 将字节数组转为16进制的字符串
-            StringBuilder sb = new StringBuilder();
-            for (byte b : bytes) {
-                sb.append(String.format("%02x", b)); // 每个字节转为2位16进制字符串
-            }
-
-            return sb.toString();
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("MD5 encryption error", e);
-        }
-    }
 }
