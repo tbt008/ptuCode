@@ -88,6 +88,11 @@
             <artifactId>httpmime</artifactId>
             <version>4.5</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>5.2.3</version> <!-- 确保版本与实际项目兼容 -->
+        </dependency>
     </dependencies>
 
 
