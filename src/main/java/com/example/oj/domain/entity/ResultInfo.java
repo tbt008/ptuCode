@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 public class ResultInfo {
 
-    private Integer id;
+    private Long id;
     private RunStatus description;
     private Integer runTime;
     private Integer memory;

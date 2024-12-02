@@ -20,3 +20,11 @@ ptu:
     host: 120.26.170.155
     port: 6379
     database: 1
+mybatis-plus:
+  global-config:
+    db-config:
+      id-type: assign_id
+      worker-id: 1
+      data-center-id: 1
+      max-worker-id: 31
+      max-data-center-id: 31

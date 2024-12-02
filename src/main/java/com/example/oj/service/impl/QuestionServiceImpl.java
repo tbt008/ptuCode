@@ -1,6 +1,7 @@
 package com.example.oj.service.impl;
 
 
+import cn.hutool.core.bean.BeanUtil;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
@@ -11,15 +12,14 @@ import com.baomidou.mybatisplus.core.toolkit.ObjectUtils;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.example.oj.common.BaseContext;
 import com.example.oj.common.ErrorCode;
 import com.example.oj.common.Language;
 import com.example.oj.common.TestCaseResult;
 import com.example.oj.domain.dto.JudgeDTO;
-import com.example.oj.domain.dto.QuestionDTO;
+import com.example.oj.domain.dto.QuestionFilterDTO;
 import com.example.oj.domain.entity.CodeRecord;
 import com.example.oj.domain.entity.Question;
-import com.example.oj.domain.vo.QuestionVo;
+import com.example.oj.domain.vo.QuestionUserVO;
 import com.example.oj.exception.BusinessException;
 import com.example.oj.mapper.CodeRecordMapper;
 import com.example.oj.mapper.QuestionMapper;
@@ -35,8 +35,9 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.entity.mime.content.InputStreamBody;
 import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -45,12 +46,11 @@ import org.apache.http.util.EntityUtils;
 
 import org.springframework.stereotype.Service;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -67,6 +67,7 @@ import java.util.concurrent.Executors;
  */
 @Service
 public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> implements IQuestionService {
+
 
     private final ExecutorService executorService = Executors.newCachedThreadPool();
 
@@ -103,7 +104,8 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         codeRecord.setCode(judgeDTO.getCode());
         codeRecord.setLanguage(language);
         codeRecord.setQuestionId(judgeDTO.getQuestionId());
-        codeRecord.setUserId( BaseContext.getUserInfo().getUserId());
+//        codeRecord.setUserId( BaseContext.getUserInfo().getUserId());
+        codeRecord.setUserId(1L);
 
         LocalDateTime now = LocalDateTime.now();
         codeRecord.setCreateTime(now);
@@ -153,6 +155,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
                     updateCodeRecord.setStatus(2);
                     updateCodeRecord.setResult(-1);
                     updateCodeRecord.setJudgeInfo(strResult);
+                    updateCodeRecord.setUpdateTime(LocalDateTime.now());
                     codeRecordMapper.update(updateCodeRecord, codeRecordUpdateWrapper);
                 } catch (Exception e) {
                     UpdateWrapper<CodeRecord> codeRecordUpdateWrapper = new UpdateWrapper<>();
@@ -193,8 +196,8 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
 
             // 设置请求的超时配置
             RequestConfig requestConfig = RequestConfig.custom()
-                    .setSocketTimeout(6000)
-                    .setConnectTimeout(6000)
+                    .setSocketTimeout(10000)
+                    .setConnectTimeout(10000)
                     .build();
             httpPost.setConfig(requestConfig);
             HttpResponse response = httpClient.execute(httpPost);
@@ -222,10 +225,6 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
             throw new RuntimeException(e);
         } finally {
             deleteFolder(testCaseId);
-            File in = new File("1.in");
-            File out = new File("1.out");
-            in.delete();
-            out.delete();
         }
         TestCaseResult testCaseResult = new TestCaseResult();
         testCaseResult.setError(-12);
@@ -253,8 +252,6 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
             // 打印响应状态码
             String strResult = EntityUtils.toString(response.getEntity());
             int statusCode = response.getStatusLine().getStatusCode();
-            System.out.println("Response Code: " + statusCode);
-            System.out.println(strResult);
         } catch (ClientProtocolException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {
@@ -266,12 +263,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
 
     private void uploadFile(String path, String filename, String input) throws UnsupportedEncodingException {
 
-        File file = new File(filename);
-        try (FileWriter writer = new FileWriter(file)) {
-            writer.write(input);  // 将 input 字符串写入文件
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(input.getBytes(StandardCharsets.UTF_8));
 
         String url = "http://120.26.170.155:12138/upload";
         HttpPost httpPost = new HttpPost(url);
@@ -279,12 +271,9 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         httpPost.setHeader("Accept", "application/json");
 
         MultipartEntityBuilder builder = MultipartEntityBuilder.create();
-        if (file.exists() && file.length() > 0) {
-            System.out.println("File exists and has content.");
-        } else {
-            System.out.println("File does not exist or is empty.");
-        }
-        builder.addPart("file", new FileBody(file));  // 添加文件
+
+        // 使用 InputStreamBody 直接传输流数据
+        builder.addPart("file", new InputStreamBody(byteArrayInputStream, ContentType.APPLICATION_OCTET_STREAM, filename));  // 通过流传输文件
         builder.addPart("path", new StringBody(path));  // 添加路径字段（传递路径参数）
 
 
@@ -298,13 +287,59 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
             // 打印响应状态码
             String strResult = EntityUtils.toString(response.getEntity());
             int statusCode = response.getStatusLine().getStatusCode();
-            System.out.println("Response Code: " + statusCode);
-            System.out.println(strResult);
         } catch (ClientProtocolException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+
+
+    public int saveFile(Long questionId, MultipartFile file) throws IOException {
+
+        String url = "http://120.26.170.155:12138/upload";
+        HttpPost httpPost = new HttpPost(url);
+        // 设置请求头
+        httpPost.setHeader("Accept", "application/json");
+
+        MultipartEntityBuilder builder = MultipartEntityBuilder.create();// 处理文件上传
+        if (file != null && !file.isEmpty()) {
+            // 通过 InputStreamBody 添加文件
+            InputStream inputStream = file.getInputStream();
+            builder.addPart("file", new InputStreamBody(inputStream, file.getOriginalFilename()));
+        }
+        builder.addPart("path", new StringBody(questionId.toString()));  // 添加路径字段（传递路径参数）
+
+
+        // 将构建的请求体设置到 HttpPost 中
+        HttpEntity entity = builder.build();
+        httpPost.setEntity(entity);
+
+        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+            HttpResponse response = httpClient.execute(httpPost);  // 执行请求
+
+            // 打印响应状态码
+            String strResult = EntityUtils.toString(response.getEntity());
+            int statusCode = response.getStatusLine().getStatusCode();
+            return statusCode;
+        } catch (ClientProtocolException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public List<Question> getQuestionList(List<Long> questionId) {
+        if (questionId == null) {
+            throw new RuntimeException("questionId is null");
+        }
+        List<Question> questionList = questionMapper.selectBatchIds(questionId);
+        if (questionList == null || questionList.size() == 0) {
+            throw new RuntimeException("questionList is null");
+        }
+        return questionList;
     }
 
     private String getLanguageConfig (Integer language) {
@@ -343,43 +378,55 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         return httpPost;
     }
     @Override
-    public QuestionVo getQuestionVO(Question question) {
-        QuestionVo questionVO = QuestionVo.potovo(question);
+    public QuestionUserVO getQuestionVO(Question question) {
+        if (question == null) {
+            return null;
+        }
+        QuestionUserVO questionVO=new QuestionUserVO();
+        BeanUtil.copyProperties(question, questionVO);
+//        计算通过率
+        int passPerson = question.getPassPerson();
+        int tryPerson = question.getTryPerson();
+        if(tryPerson==0){
+            questionVO.setPassRate(0.0);
+        }else{
+          double passRate =  passPerson/tryPerson*1.0;
+            questionVO.setPassRate(passRate);
+        }
+
         //添加标签
-        int titleId = question.getTitleId();
-        List<String> tags = iQuestionTagService.getTagNamesBytitleId(titleId);
-        questionVO.setTags(tags);
+//        int titleId = question.getTitleId();
+//        List<String> tags = iQuestionTagService.getTagNamesBytitleId(titleId);
+//        questionVO.setTags(tags);
         return questionVO;
     }
 
     @Override
-    public Wrapper<Question> getListWrapper(QuestionDTO questionDTO) {
+    public Wrapper<Question> getListWrapper(QuestionFilterDTO questionFilterDTO) {
         QueryWrapper<Question> queryWrapper = new QueryWrapper<>();
-        if (questionDTO == null) {
+        if (questionFilterDTO == null) {
             return queryWrapper;
         }
-        Integer titleId = questionDTO.getTitleId();
-        String titleName = questionDTO.getTitleName();
-        String content = questionDTO.getContent();
-        String answer = questionDTO.getAnswer();
-        Integer createUser = questionDTO.getCreateUser();
-        String sortField = questionDTO.getSortField();
-        String sortOrder = questionDTO.getSortOrder();
-        Integer minScore = questionDTO.getMinscore();
-        Integer maxScore = questionDTO.getMaxscore();
-        List<String>  tagNames=questionDTO.getTagNames();
-        if(tagNames!=null){
-            for(String tagName:tagNames){
-                List<Integer> tid=iQuestionTagService.getTitleIdsbyTagName(tagName);
-                queryWrapper.in(ObjectUtils.isNotEmpty(tid), "title_id", tid);
-            }
-        }
+        Integer titleId = questionFilterDTO.getTitleId();
+        String titleName = questionFilterDTO.getTitleName();
+        Integer score = questionFilterDTO.getScore();
+        String sortField = questionFilterDTO.getSortField();
+        String sortOrder = questionFilterDTO.getSortOrder();
+        Integer minScore = questionFilterDTO.getMinscore();
+        Integer maxScore = questionFilterDTO.getMaxscore();
+//        TODO  根据标签筛选待处理
+//        List<String>  tagNames=questionFilterDTO.getTagNames();
+//        if(tagNames!=null){
+//            for(String tagName:tagNames){
+//                List<Integer> tid=iQuestionTagService.getTitleIdsbyTagName(tagName);
+//                queryWrapper.in(ObjectUtils.isNotEmpty(tid), "title_id", tid);
+//            }
+//        }
 
         queryWrapper.eq(ObjectUtils.isNotEmpty(titleId), "title_id", titleId);
         queryWrapper.like(StringUtils.isNotBlank(titleName), "title_name", titleName);
-        queryWrapper.like(StringUtils.isNotBlank(content), "content", content);
-        queryWrapper.like(StringUtils.isNotBlank(answer), "answer", answer);
-        queryWrapper.eq(ObjectUtils.isNotEmpty(createUser), "create_user", createUser);
+        queryWrapper.eq("status", 0);
+        queryWrapper.eq(ObjectUtils.isNotEmpty(score), "score", score);
         queryWrapper.ge(ObjectUtils.isNotEmpty(minScore), "score", minScore);
         queryWrapper.le(ObjectUtils.isNotEmpty(maxScore), "score", maxScore);
         queryWrapper.eq("is_deleted", false);
@@ -392,15 +439,15 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
     }
 
     @Override
-    public Page<QuestionVo> getQuestionPageVO(Page<Question> questionPage) {
+    public Page<QuestionUserVO> getQuestionPageVO(Page<Question> questionPage) {
         List<Question> questionList = questionPage.getRecords();
-        Page<QuestionVo> questionVOPage = new Page<>(questionPage.getCurrent(), questionPage.getSize(), questionPage.getTotal());
+        Page<QuestionUserVO> questionVOPage = new Page<>(questionPage.getCurrent(), questionPage.getSize(), questionPage.getTotal());
         if (CollectionUtils.isEmpty(questionList)) {
             return questionVOPage;
         }
 
-        List<QuestionVo> questionVOList = questionList.stream().map(question -> {
-            QuestionVo questionVO = getQuestionVO(question);
+        List<QuestionUserVO> questionVOList = questionList.stream().map(question -> {
+            QuestionUserVO questionVO = getQuestionVO(question);
             return questionVO;
         }).collect(Collectors.toList());
         questionVOPage.setRecords(questionVOList);

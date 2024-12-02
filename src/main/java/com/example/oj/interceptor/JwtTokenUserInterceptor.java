@@ -27,8 +27,8 @@ public class JwtTokenUserInterceptor implements HandlerInterceptor {
 
     @Resource
     private JwtProperties jwtProperties;
-@Resource
-private RedisTemplate redisTemplate;
+    @Resource
+    private RedisTemplate redisTemplate;
     /**
      * 校验jwt
      *
@@ -54,11 +54,11 @@ private RedisTemplate redisTemplate;
         try {
             log.info("jwt校验:{}", token);
             Claims claims = JwtUtil.parseJWT(jwtProperties.getSecretKey(), token);
-               Long userId = Long.valueOf(claims.get(JwtClaimsConstant.USER_ID).toString());
+            Long userId = Long.valueOf(claims.get(JwtClaimsConstant.USER_ID).toString());
             Long userType = Long.valueOf(claims.get(JwtClaimsConstant.USER_TYPE).toString());
             UserInfo userInfo = new UserInfo();
             userInfo.setUserId(userId);
-          userInfo.setUserType(userType);
+            userInfo.setUserType(userType);
 //          获取redistoken 对比一下
 
             String redisToken  = redisTemplate.opsForValue().get("login:" + claims.get(JwtClaimsConstant.USER_ID).toString()).toString();

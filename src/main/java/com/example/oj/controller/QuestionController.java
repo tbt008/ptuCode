@@ -2,26 +2,30 @@ package com.example.oj.controller;
 
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.example.oj.common.ErrorCode;
-import com.example.oj.common.InputCase;
-import com.example.oj.common.Result;
-import com.example.oj.common.TestCaseResult;
+import com.example.oj.common.*;
 import com.example.oj.domain.dto.JudgeDTO;
 import com.example.oj.domain.dto.QuestionDTO;
+import com.example.oj.domain.dto.QuestionFilterDTO;
 import com.example.oj.domain.entity.Question;
+import com.example.oj.domain.vo.QuestionUserVO;
 import com.example.oj.domain.vo.QuestionVo;
 import com.example.oj.exception.BusinessException;
 import com.example.oj.service.IQuestionService;
 import com.example.oj.service.IQuestionTagService;
+import com.example.oj.utils.PermissionUtils;
 import org.springframework.beans.BeanUtils;
 
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Map;
 
 
 /**
@@ -42,6 +46,8 @@ public class QuestionController {
     @Resource
     private IQuestionTagService iQuestionTagService;
 
+    private PermissionUtils permissionUtils;
+
     /**
      * 提交代码
      * @param judgeDTO
@@ -49,7 +55,6 @@ public class QuestionController {
      */
     @PostMapping("/judge")
     public Result<Long> submitQuestion(@RequestBody JudgeDTO judgeDTO){
-           System.out.println(judgeDTO);
         // 参数校验
         if(judgeDTO.getCode()==null||judgeDTO.getQuestionId()<=0){
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -82,31 +87,37 @@ public class QuestionController {
      * @param id
      * @retrun questionVo
      */
-    @GetMapping("/{question_id}")
-    public Result<QuestionVo> getById(@PathVariable("question_id") Long id, HttpServletRequest request){
-        Question question = iQuestionService.lambdaQuery().eq(Question::getTitleId, id).one();
+    @GetMapping("/{id}")
+    public Result<QuestionVo> getById(@PathVariable("id") Long id, HttpServletRequest request){
+        Question question = iQuestionService.lambdaQuery().eq(Question::getId, id).one();
         if(question==null){
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
         }
-        return Result.success(iQuestionService.getQuestionVO(question));
+        return null;
+//       return Result.success(iQuestionService.getQuestionVO(question));
     }
     /**
-     * 题目列表
-     * @param questionDTO
+     * 题目列表(用户显示
+     * @param questionFilterDTO
      * @retrun Page<QuestionVo>
      */
     @PostMapping("/list")
-    public Result<Page<QuestionVo>> QuestionList(@RequestBody QuestionDTO questionDTO, HttpServletRequest request) {
-        if (questionDTO == null) {
+    public Result<List<QuestionUserVO>> QuestionList(@RequestBody QuestionFilterDTO questionFilterDTO) {
+
+
+        if (questionFilterDTO == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        long start = questionDTO.getPageStart();
-        long size = questionDTO.getPageSize();
+        long start = questionFilterDTO.getPageStart();
+        long size = questionFilterDTO.getPageSize();
 
         Page<Question> questionPage = iQuestionService.page(
                 new Page<>(start, size),
-                iQuestionService.getListWrapper(questionDTO));
-        return Result.success(iQuestionService.getQuestionPageVO(questionPage));
+                iQuestionService.getListWrapper(questionFilterDTO));
+        List<QuestionUserVO> records = iQuestionService.getQuestionPageVO(questionPage).getRecords();
+//        过滤掉状态
+
+        return Result.success();
     }
 
     /**
@@ -120,27 +131,23 @@ public class QuestionController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         // 判断是否存在
-        Boolean st = iQuestionService.lambdaQuery().eq(Question::getTitleId, questionDTO.getTitleId()).exists();
+        Boolean st = iQuestionService.lambdaQuery().eq(Question::getTitleName, questionDTO.getTitleName()).exists();
         if(st==true){
-            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR,"题目id已经存在");
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR,"题目名已经存在");
         }
         Question question = new Question();
         BeanUtils.copyProperties(questionDTO, question);
         // 参数校验
         iQuestionService.validQuestion(question);
+//  TODO 标签待定
 
-        List<String> tag_names = questionDTO.getTagNames();
-        if(tag_names!=null){
-            iQuestionTagService.savetag(questionDTO.getTitleId(),tag_names);
-        }
-
-        //TODO judgeCase
+//        TODO 获取创建人
         boolean vis = iQuestionService.save(question);
         if(vis==false){
             throw new BusinessException(ErrorCode.OPERATION_ERROR);
         }
-        long questionid = question.getId();
-        return Result.success(questionid);
+        Long questionId = Long.valueOf(question.getId());
+        return Result.success(questionId);
     }
 
     /**
@@ -154,23 +161,18 @@ public class QuestionController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         // 判断是否存在
-        Question question = iQuestionService.lambdaQuery().eq(Question::getTitleId, questionDTO.getTitleId()).one();
+        Question question = iQuestionService.lambdaQuery().eq(Question::getId, questionDTO.getId()).one();
         if(question==null){
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR,"题目不存在");
         }
         // 参数校验
         iQuestionService.validQuestion(question);
 
-        List<String> tag_names = questionDTO.getTagNames();
-        if(tag_names!=null){
-            iQuestionTagService.removeBytitleId(questionDTO.getTitleId());
-            iQuestionTagService.savetag(questionDTO.getTitleId(),tag_names);
-        }
+//TODO 标签
 
-        //TODO judgeCase
         Question nowQuestion = new Question();
         BeanUtils.copyProperties(questionDTO, nowQuestion);
-        nowQuestion.setId(question.getId());
+
         return Result.success(iQuestionService.updateById(nowQuestion));
     }
      /**
@@ -185,6 +187,42 @@ public class QuestionController {
              throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
          }
          return Result.success(iQuestionService.removeQuestion(question));
+     }
+
+    /**
+     * 根据题目id上传测试数据
+     * @param file
+     * @param questionId
+     * @return
+     * @throws IOException
+     */
+     @PostMapping("/savefile")
+     public Result<Integer> saveQuestionFile(@RequestParam("file") MultipartFile file, @RequestParam("path") Long questionId) throws IOException {
+
+         Question question = iQuestionService.lambdaQuery().eq(Question::getId, questionId).one();
+
+         if (!permissionUtils.problemController(question.getCreateUser())) {
+             throw new BusinessException(ErrorCode.PERMISSION_ERROR);
+         }
+
+         return Result.success(iQuestionService.saveFile(questionId, file));
+     }
+
+    /**
+     * 获取题目详细列表
+     * @param questionId
+     * @return
+     */
+     @PostMapping("/questionlist")
+     public Result questionList(@RequestBody Map<String, List<Long>> questionId) {
+         List<Long> list = questionId.get("questionId");
+         List<Question> questionList = iQuestionService.getQuestionList(list);
+         for (Question question : questionList) {
+             if (question.getStatus() == 1) {
+                 question.setAnswer("");
+             }
+         }
+         return Result.success(iQuestionService.getQuestionList(list));
      }
 
 }

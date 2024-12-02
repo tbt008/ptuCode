@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component;
  * @author tbt
  * @since 2024-11-26
  */
-@Component
 public interface ITagService extends IService<Tag> {
 
 }

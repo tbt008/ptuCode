@@ -42,7 +42,7 @@ public class QuestionTagServiceImpl extends ServiceImpl<QuestionTagMapper, Quest
         List<QuestionTag> questionTags=lambdaQuery()
                 .eq(QuestionTag::getQuestionId,titleId)
                 .list();
-        List<Integer> tag_ids=questionTags.stream().map(QuestionTag::getTagId).collect(Collectors.toList());
+        List<Long> tag_ids=questionTags.stream().map(QuestionTag::getTagId).collect(Collectors.toList());
         List<Tag> tags = iTagService.listByIds(tag_ids);
         List<String> tag_names=tags.stream().map(Tag::getName).collect(Collectors.toList());
         return tag_names;

@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.oj.common.ErrorCode;
 import com.example.oj.common.TestCaseResult;
 import com.example.oj.domain.entity.CodeRecord;
+import com.example.oj.domain.vo.CodeRecordVO;
 import com.example.oj.exception.BusinessException;
 import com.example.oj.mapper.CodeRecordMapper;
 import com.example.oj.service.ICodeRecordService;
@@ -119,6 +120,11 @@ public class CodeRecordServiceImpl extends ServiceImpl<CodeRecordMapper, CodeRec
             List<TestCaseResult> testCaseResults = JSON.parseArray(rootNode.get("data").toString(), TestCaseResult.class);
             return testCaseResults;
         }
+        return null;
+    }
+
+    @Override
+    public List<CodeRecordVO> getRecordByUid(Long id) {
         return null;
     }
 }

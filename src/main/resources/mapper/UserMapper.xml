@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.oj.mapper.UserMapper">
+
+
+    <!-- 批量插入用户 -->
+    <insert id="saveBatch" parameterType="java.util.List">
+        <!-- 插入多个用户 -->
+        insert into user
+        (id, user_name, nick_name, password, description, status, email, phone_number, sex, avatar, user_type,
+        create_time, update_time, solve_easy, solve_middle, solve_hard, score, is_deleted, class_name)
+        values
+        <foreach collection="list" item="user" separator=",">
+            (#{user.id}, #{user.userName}, #{user.nickName}, #{user.password}, #{user.description}, #{user.status},
+            #{user.email}, #{user.phoneNumber}, #{user.sex}, #{user.avatar}, #{user.userType},
+            #{user.createTime}, #{user.updateTime}, #{user.solveEasy}, #{user.solveMiddle},
+            #{user.solveHard}, #{user.score}, #{user.isDeleted}, #{user.className})
+        </foreach>
+    </insert>
+</mapper>

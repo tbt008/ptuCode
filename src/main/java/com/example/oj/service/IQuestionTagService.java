@@ -15,7 +15,6 @@ import java.util.List;
  * @author tbt
  * @since 2024-11-26
  */
-@Component
 public interface IQuestionTagService extends IService<QuestionTag> {
 
     List<String> getTagNamesBytitleId(int titleId);
