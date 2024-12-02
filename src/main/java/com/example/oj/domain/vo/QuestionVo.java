@@ -32,11 +32,6 @@ public class QuestionVo implements Serializable {
     @TableField("title_name")
     private String titleName;
 
-    /**
-     * 状态 0正常 1比赛 后续待补充
-     */
-    @TableField("status")
-    private Integer status;
 
     /**
      * 内容
@@ -89,11 +84,6 @@ public class QuestionVo implements Serializable {
     @TableField("pass_person")
     private Integer passPerson;
 
-    /**
-     * 判断题目的测试用例
-     */
-    @TableField("judge_case")
-    private String judgeCase;
 
     /**
      * 时间限制
@@ -107,16 +97,6 @@ public class QuestionVo implements Serializable {
 
     List<String> tags;
 
-    /**
-     *
-     * @param question
-     * @return
-     */
-    public static QuestionVo potovo(Question question) {
-        if (question == null) {return null;}
-        QuestionVo questionVO = new QuestionVo();
-        BeanUtils.copyProperties(question, questionVO);
-        return questionVO;
-    }
+
 
 }

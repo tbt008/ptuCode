@@ -5,7 +5,9 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.oj.common.*;
 import com.example.oj.domain.dto.JudgeDTO;
 import com.example.oj.domain.dto.QuestionDTO;
+import com.example.oj.domain.dto.QuestionFilterDTO;
 import com.example.oj.domain.entity.Question;
+import com.example.oj.domain.vo.QuestionUserVO;
 import com.example.oj.domain.vo.QuestionVo;
 import com.example.oj.exception.BusinessException;
 import com.example.oj.service.IQuestionService;
@@ -85,36 +87,37 @@ public class QuestionController {
      * @param id
      * @retrun questionVo
      */
-    @GetMapping("/{question_id}")
-    public Result<QuestionVo> getById(@PathVariable("question_id") Long id, HttpServletRequest request){
-        Question question = iQuestionService.lambdaQuery().eq(Question::getTitleId, id).one();
-        if (question.getStatus() == 1) {
-            if (!permissionUtils.problemController(question.getId())) {
-                question = null;
-            }
-        }
+    @GetMapping("/{id}")
+    public Result<QuestionVo> getById(@PathVariable("id") Long id, HttpServletRequest request){
+        Question question = iQuestionService.lambdaQuery().eq(Question::getId, id).one();
         if(question==null){
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
         }
-        return Result.success(iQuestionService.getQuestionVO(question));
+        return null;
+//       return Result.success(iQuestionService.getQuestionVO(question));
     }
     /**
-     * 题目列表
-     * @param questionDTO
+     * 题目列表(用户显示
+     * @param questionFilterDTO
      * @retrun Page<QuestionVo>
      */
     @PostMapping("/list")
-    public Result<Page<QuestionVo>> QuestionList(@RequestBody QuestionDTO questionDTO, HttpServletRequest request) {
-        if (questionDTO == null) {
+    public Result<List<QuestionUserVO>> QuestionList(@RequestBody QuestionFilterDTO questionFilterDTO) {
+
+
+        if (questionFilterDTO == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        long start = questionDTO.getPageStart();
-        long size = questionDTO.getPageSize();
+        long start = questionFilterDTO.getPageStart();
+        long size = questionFilterDTO.getPageSize();
 
         Page<Question> questionPage = iQuestionService.page(
                 new Page<>(start, size),
-                iQuestionService.getListWrapper(questionDTO));
-        return Result.success(iQuestionService.getQuestionPageVO(questionPage));
+                iQuestionService.getListWrapper(questionFilterDTO));
+        List<QuestionUserVO> records = iQuestionService.getQuestionPageVO(questionPage).getRecords();
+//        过滤掉状态
+
+        return Result.success();
     }
 
     /**
@@ -127,31 +130,24 @@ public class QuestionController {
         if (questionDTO == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        if (!permissionUtils.problemController()) {
-            throw new BusinessException(ErrorCode.PERMISSION_ERROR);
-        }
         // 判断是否存在
-        Boolean st = iQuestionService.lambdaQuery().eq(Question::getTitleId, questionDTO.getTitleId()).exists();
+        Boolean st = iQuestionService.lambdaQuery().eq(Question::getTitleName, questionDTO.getTitleName()).exists();
         if(st==true){
-            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR,"题目id已经存在");
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR,"题目名已经存在");
         }
         Question question = new Question();
         BeanUtils.copyProperties(questionDTO, question);
         // 参数校验
         iQuestionService.validQuestion(question);
+//  TODO 标签待定
 
-        List<String> tag_names = questionDTO.getTagNames();
-        if(tag_names!=null){
-            iQuestionTagService.savetag(questionDTO.getTitleId(),tag_names);
-        }
-
-        //TODO judgeCase
+//        TODO 获取创建人
         boolean vis = iQuestionService.save(question);
         if(vis==false){
             throw new BusinessException(ErrorCode.OPERATION_ERROR);
         }
-        long questionid = question.getId();
-        return Result.success(questionid);
+        Long questionId = Long.valueOf(question.getId());
+        return Result.success(questionId);
     }
 
     /**
@@ -161,31 +157,22 @@ public class QuestionController {
      */
     @PutMapping("/update")
     public Result<Boolean> updateQuestion(@RequestBody QuestionDTO questionDTO,HttpServletRequest request) {
-
         if (questionDTO == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        if (!permissionUtils.problemController(questionDTO.getCreateUser())) {
-            throw new BusinessException(ErrorCode.PERMISSION_ERROR);
-        }
         // 判断是否存在
-        Question question = iQuestionService.lambdaQuery().eq(Question::getTitleId, questionDTO.getTitleId()).one();
+        Question question = iQuestionService.lambdaQuery().eq(Question::getId, questionDTO.getId()).one();
         if(question==null){
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR,"题目不存在");
         }
         // 参数校验
         iQuestionService.validQuestion(question);
 
-        List<String> tag_names = questionDTO.getTagNames();
-        if(tag_names!=null){
-            iQuestionTagService.removeBytitleId(questionDTO.getTitleId());
-            iQuestionTagService.savetag(questionDTO.getTitleId(),tag_names);
-        }
+//TODO 标签
 
-        //TODO judgeCase
         Question nowQuestion = new Question();
         BeanUtils.copyProperties(questionDTO, nowQuestion);
-        nowQuestion.setId(question.getId());
+
         return Result.success(iQuestionService.updateById(nowQuestion));
     }
      /**
@@ -196,11 +183,6 @@ public class QuestionController {
      @DeleteMapping("/delete/{title_id}")
      public Result<Boolean> deleteQuestion(@PathVariable("title_id") Long id, HttpServletRequest request) {
          Question question = iQuestionService.lambdaQuery().eq(Question::getTitleId, id).one();
-
-         if (!permissionUtils.problemController(question.getCreateUser())) {
-             throw new BusinessException(ErrorCode.PERMISSION_ERROR);
-         }
-
          if(question==null){
              throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
          }

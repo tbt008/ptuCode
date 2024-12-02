@@ -6,11 +6,10 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.example.oj.common.TestCaseResult;
 import com.example.oj.domain.dto.JudgeDTO;
-import com.example.oj.domain.dto.QuestionDTO;
+import com.example.oj.domain.dto.QuestionFilterDTO;
 import com.example.oj.domain.entity.Question;
-import com.example.oj.domain.vo.QuestionVo;
+import com.example.oj.domain.vo.QuestionUserVO;
 
-import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -29,11 +28,11 @@ public interface IQuestionService extends IService<Question> {
 
     Long submitQuestion(JudgeDTO judgeDTO);
 
-    QuestionVo getQuestionVO(Question question);
+    QuestionUserVO getQuestionVO(Question question);
 
-    Wrapper<Question> getListWrapper(QuestionDTO questionDTO);
+    Wrapper<Question> getListWrapper(QuestionFilterDTO questionFilterDTO);
 
-    Page<QuestionVo> getQuestionPageVO(Page<Question> questionPage);
+    Page<QuestionUserVO> getQuestionPageVO(Page<Question> questionPage);
 
     void validQuestion(Question question);
 

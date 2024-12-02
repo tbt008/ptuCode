@@ -32,12 +32,12 @@ public class TagController {
     @Autowired
     private ITagService iTagService;
     /**
-     * 新增题目（管理员）
+     * 新增标签（管理员）
      * @param tag
      * @return tagId
      */
     @PostMapping("/add")
-    public Result<Long> addQuestion(@RequestBody Tag tag, HttpServletRequest request) {
+    public Result<Long> addTag(@RequestBody Tag tag, HttpServletRequest request) {
         if (tag == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }

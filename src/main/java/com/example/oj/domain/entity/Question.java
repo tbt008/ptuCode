@@ -26,12 +26,14 @@ public class Question implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+//雪花
     @TableId(value = "id", type = IdType.ASSIGN_ID)
     private Long id;
 
     /**
      * 题目id
      */
+//    自增
     @TableField("title_id")
     private Integer titleId;
 

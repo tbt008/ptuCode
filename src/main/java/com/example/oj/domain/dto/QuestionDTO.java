@@ -79,10 +79,6 @@ public class QuestionDTO extends PageLimit implements Serializable {
      */
     private Integer maxscore;
 
-    /**
-     * 判断题目的测试用例
-     */
-    private String judgeCase;
 
     /**
      * 答案

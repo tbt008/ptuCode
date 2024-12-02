@@ -1,9 +1,11 @@
 package com.example.oj.controller;
 
+import com.example.oj.common.ErrorCode;
 import com.example.oj.common.Result;
 import com.example.oj.common.TestCaseResult;
 import com.example.oj.domain.entity.CodeRecord;
 import com.example.oj.domain.vo.CodeRecordVO;
+import com.example.oj.exception.BusinessException;
 import com.example.oj.service.ICodeRecordService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,7 +31,11 @@ public class CodeRecordController {
      * 查询当前用户对题目id的所有提交记录
      */
     @GetMapping("/get/list/{id}")
-        public Result<CodeRecordVO> getRecordByUid(@PathVariable Long id){
+        public Result getRecordByUid(@PathVariable Long id){
+        if(id==null){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+            codeRecordService.getRecordByUid(id);
         return null;
     };
     /**

@@ -1,9 +1,9 @@
 package com.example.oj.service.impl;
 
 
+import cn.hutool.core.bean.BeanUtil;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
-import com.alibaba.fastjson2.TypeReference;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -12,15 +12,14 @@ import com.baomidou.mybatisplus.core.toolkit.ObjectUtils;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.example.oj.common.BaseContext;
 import com.example.oj.common.ErrorCode;
 import com.example.oj.common.Language;
 import com.example.oj.common.TestCaseResult;
 import com.example.oj.domain.dto.JudgeDTO;
-import com.example.oj.domain.dto.QuestionDTO;
+import com.example.oj.domain.dto.QuestionFilterDTO;
 import com.example.oj.domain.entity.CodeRecord;
 import com.example.oj.domain.entity.Question;
-import com.example.oj.domain.vo.QuestionVo;
+import com.example.oj.domain.vo.QuestionUserVO;
 import com.example.oj.exception.BusinessException;
 import com.example.oj.mapper.CodeRecordMapper;
 import com.example.oj.mapper.QuestionMapper;
@@ -38,7 +37,6 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.InputStreamBody;
 import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -69,6 +67,7 @@ import java.util.concurrent.Executors;
  */
 @Service
 public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> implements IQuestionService {
+
 
     private final ExecutorService executorService = Executors.newCachedThreadPool();
 
@@ -379,43 +378,55 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         return httpPost;
     }
     @Override
-    public QuestionVo getQuestionVO(Question question) {
-        QuestionVo questionVO = QuestionVo.potovo(question);
+    public QuestionUserVO getQuestionVO(Question question) {
+        if (question == null) {
+            return null;
+        }
+        QuestionUserVO questionVO=new QuestionUserVO();
+        BeanUtil.copyProperties(question, questionVO);
+//        计算通过率
+        int passPerson = question.getPassPerson();
+        int tryPerson = question.getTryPerson();
+        if(tryPerson==0){
+            questionVO.setPassRate(0.0);
+        }else{
+          double passRate =  passPerson/tryPerson*1.0;
+            questionVO.setPassRate(passRate);
+        }
+
         //添加标签
-        int titleId = question.getTitleId();
-        List<String> tags = iQuestionTagService.getTagNamesBytitleId(titleId);
-        questionVO.setTags(tags);
+//        int titleId = question.getTitleId();
+//        List<String> tags = iQuestionTagService.getTagNamesBytitleId(titleId);
+//        questionVO.setTags(tags);
         return questionVO;
     }
 
     @Override
-    public Wrapper<Question> getListWrapper(QuestionDTO questionDTO) {
+    public Wrapper<Question> getListWrapper(QuestionFilterDTO questionFilterDTO) {
         QueryWrapper<Question> queryWrapper = new QueryWrapper<>();
-        if (questionDTO == null) {
+        if (questionFilterDTO == null) {
             return queryWrapper;
         }
-        Integer titleId = questionDTO.getTitleId();
-        String titleName = questionDTO.getTitleName();
-        String content = questionDTO.getContent();
-        String answer = questionDTO.getAnswer();
-        Long createUser = questionDTO.getCreateUser();
-        String sortField = questionDTO.getSortField();
-        String sortOrder = questionDTO.getSortOrder();
-        Integer minScore = questionDTO.getMinscore();
-        Integer maxScore = questionDTO.getMaxscore();
-        List<String>  tagNames=questionDTO.getTagNames();
-        if(tagNames!=null){
-            for(String tagName:tagNames){
-                List<Integer> tid=iQuestionTagService.getTitleIdsbyTagName(tagName);
-                queryWrapper.in(ObjectUtils.isNotEmpty(tid), "title_id", tid);
-            }
-        }
+        Integer titleId = questionFilterDTO.getTitleId();
+        String titleName = questionFilterDTO.getTitleName();
+        Integer score = questionFilterDTO.getScore();
+        String sortField = questionFilterDTO.getSortField();
+        String sortOrder = questionFilterDTO.getSortOrder();
+        Integer minScore = questionFilterDTO.getMinscore();
+        Integer maxScore = questionFilterDTO.getMaxscore();
+//        TODO  根据标签筛选待处理
+//        List<String>  tagNames=questionFilterDTO.getTagNames();
+//        if(tagNames!=null){
+//            for(String tagName:tagNames){
+//                List<Integer> tid=iQuestionTagService.getTitleIdsbyTagName(tagName);
+//                queryWrapper.in(ObjectUtils.isNotEmpty(tid), "title_id", tid);
+//            }
+//        }
 
         queryWrapper.eq(ObjectUtils.isNotEmpty(titleId), "title_id", titleId);
         queryWrapper.like(StringUtils.isNotBlank(titleName), "title_name", titleName);
-        queryWrapper.like(StringUtils.isNotBlank(content), "content", content);
-        queryWrapper.like(StringUtils.isNotBlank(answer), "answer", answer);
-        queryWrapper.eq(ObjectUtils.isNotEmpty(createUser), "create_user", createUser);
+        queryWrapper.eq("status", 0);
+        queryWrapper.eq(ObjectUtils.isNotEmpty(score), "score", score);
         queryWrapper.ge(ObjectUtils.isNotEmpty(minScore), "score", minScore);
         queryWrapper.le(ObjectUtils.isNotEmpty(maxScore), "score", maxScore);
         queryWrapper.eq("is_deleted", false);
@@ -428,15 +439,15 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
     }
 
     @Override
-    public Page<QuestionVo> getQuestionPageVO(Page<Question> questionPage) {
+    public Page<QuestionUserVO> getQuestionPageVO(Page<Question> questionPage) {
         List<Question> questionList = questionPage.getRecords();
-        Page<QuestionVo> questionVOPage = new Page<>(questionPage.getCurrent(), questionPage.getSize(), questionPage.getTotal());
+        Page<QuestionUserVO> questionVOPage = new Page<>(questionPage.getCurrent(), questionPage.getSize(), questionPage.getTotal());
         if (CollectionUtils.isEmpty(questionList)) {
             return questionVOPage;
         }
 
-        List<QuestionVo> questionVOList = questionList.stream().map(question -> {
-            QuestionVo questionVO = getQuestionVO(question);
+        List<QuestionUserVO> questionVOList = questionList.stream().map(question -> {
+            QuestionUserVO questionVO = getQuestionVO(question);
             return questionVO;
         }).collect(Collectors.toList());
         questionVOPage.setRecords(questionVOList);
