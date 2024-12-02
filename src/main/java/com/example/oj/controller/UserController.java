@@ -62,21 +62,6 @@ public class UserController {
         return Result.success(user);
     }
 
-    /**
-     * 管理员excel批量导入人数
-     *
-     * @return
-     */
-    @PostMapping("/registerbatch")
-    public Result registerBatch(@RequestParam("file") MultipartFile file) throws IOException {
-        // TODO 判断当前操作用户是否为管理员
-        List<UserRegisterVO> registerVOList = userService.registerBatch(file);
-        if (registerVOList == null || registerVOList.isEmpty()) {
-            return Result.success();
-        }
-        return Result.error(404, registerVOList.toString());
-    }
-
 
     /**
      * 用户注册

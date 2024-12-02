@@ -156,6 +156,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
                     updateCodeRecord.setStatus(2);
                     updateCodeRecord.setResult(-1);
                     updateCodeRecord.setJudgeInfo(strResult);
+                    updateCodeRecord.setUpdateTime(LocalDateTime.now());
                     codeRecordMapper.update(updateCodeRecord, codeRecordUpdateWrapper);
                 } catch (Exception e) {
                     UpdateWrapper<CodeRecord> codeRecordUpdateWrapper = new UpdateWrapper<>();

@@ -25,7 +25,6 @@ import java.util.List;
  * @author tbt
  * @since 2024-11-24
  */
-@Component
 public interface IQuestionService extends IService<Question> {
 
     Long submitQuestion(JudgeDTO judgeDTO);
