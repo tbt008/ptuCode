@@ -31,11 +31,11 @@ public class CodeRecordController {
      * 查询当前用户对题目id的所有提交记录
      */
     @GetMapping("/get/list/{id}")
-        public Result getRecordByUid(@PathVariable Long id){
-        if(id==null){
+    public Result getRecordByUid(@PathVariable Long id){
+        if(id==null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-            codeRecordService.getRecordByUid(id);
+        codeRecordService.getRecordByUid(id);
         return null;
     };
     /**

@@ -18,4 +18,7 @@
       <module name="ptuCode" options="-parameters" />
     </option>
   </component>
+  <component name="TypeScriptCompiler">
+    <option name="scopeName" value="所有位置" />
+  </component>
 </project>

@@ -100,9 +100,7 @@ public class QuestionController {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
         }
         if(question.getStatus()==1){
-//            是比赛，查询一下用户有没有资格
-//            contestService.isInvite();
-return Result.error(null);
+            return Result.error(null);
         }
         QuestionVo questionVo = new QuestionVo();
 
@@ -135,103 +133,6 @@ return Result.error(null);
     }
 
     /**
-     * 新增题目（管理员）
-     * @param questionDTO
-     * @retrun questionid
-     */
-    @PostMapping("/add")
-    @AuthCheck(permission = Permission.QUESTION_EDITOR)
-    public Result<Long> addQuestion(@RequestBody QuestionDTO questionDTO, HttpServletRequest request) {
-        if (questionDTO == null) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        // 判断是否存在
-        Boolean st = iQuestionService.lambdaQuery().eq(Question::getTitleName, questionDTO.getTitleName()).exists();
-        if(st==true){
-            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR,"题目名已经存在");
-        }
-        Question question = new Question();
-        BeanUtils.copyProperties(questionDTO, question);
-        // 参数校验
-        iQuestionService.validQuestion(question);
-//  TODO 标签待定
-
-//        TODO 获取创建人
-        boolean vis = iQuestionService.save(question);
-        if(vis==false){
-            throw new BusinessException(ErrorCode.OPERATION_ERROR);
-        }
-        Long questionId = Long.valueOf(question.getId());
-        return Result.success(questionId);
-    }
-
-    /**
-     * 修改题目 （管理员）
-     * @param questionDTO
-     * @return
-     */
-    @PutMapping("/update")
-    @AuthCheck(permission = Permission.QUESTION_EDITOR)
-    public Result<Boolean> updateQuestion(@RequestBody QuestionDTO questionDTO,HttpServletRequest request) {
-        if (questionDTO == null) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-
-        // 判断是否存在
-        Question question = iQuestionService.lambdaQuery().eq(Question::getId, questionDTO.getId()).eq(Question::getIsDeleted,0).one();
-        if(question==null){
-            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR,"题目不存在");
-        }
-//        权限校验
-        PermissionUtils.checkUserId(question.getCreateUser());
-        // 参数校验
-        iQuestionService.validQuestion(question);
-
-//TODO 标签
-
-        Question nowQuestion = new Question();
-        BeanUtils.copyProperties(questionDTO, nowQuestion);
-
-        return Result.success(iQuestionService.updateById(nowQuestion));
-    }
-     /**
-     * 删除题目 （管理员）
-      * @param id
-      * @return
-     */
-     @DeleteMapping("/delete/{title_id}")
-     @AuthCheck(permission = Permission.QUESTION_EDITOR)
-     public Result<Boolean> deleteQuestion(@PathVariable("title_id") Long id, HttpServletRequest request) {
-         Question question = iQuestionService.lambdaQuery().eq(Question::getTitleId, id).eq(Question::getIsDeleted,0).one();
-         if(question==null){
-             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
-         }
-         //        权限校验
-         PermissionUtils.checkUserId(question.getCreateUser());
-
-         return Result.success(iQuestionService.removeQuestion(question));
-     }
-
-    /**
-     * 根据题目id上传测试数据
-     * @param file
-     * @param questionId
-     * @return
-     * @throws IOException
-     */
-     @PostMapping("/save/file")
-     public Result<Integer> saveQuestionFile(@RequestParam("file") MultipartFile file, @RequestParam("path") Long questionId) throws IOException {
-
-         Question question = iQuestionService.lambdaQuery().eq(Question::getId, questionId).one();
-
-         if (!permissionUtils.problemController(question.getCreateUser())) {
-             throw new BusinessException(ErrorCode.PERMISSION_ERROR);
-         }
-
-         return Result.success(iQuestionService.saveFile(questionId, file));
-     }
-
-    /**
      * 获取题目详细列表
      * @param questionId
      * @return
@@ -240,11 +141,6 @@ return Result.error(null);
      public Result questionList(@RequestBody Map<String, List<Long>> questionId) {
          List<Long> list = questionId.get("questionId");
          List<Question> questionList = iQuestionService.getQuestionList(list);
-         for (Question question : questionList) {
-             if (question.getStatus() == 1) {
-                 question.setAnswer("");
-             }
-         }
          return Result.success(questionList);
      }
 

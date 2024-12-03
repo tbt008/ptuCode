@@ -30,18 +30,16 @@ public class PermissionUtils {
     public static boolean checkUserId(Long userId) {
 
         Long loginUserId = BaseContext.getUserInfo().getUserId();
-
         boolean isRoot = Permission.CheckAuth(Permission.ADMINISTRATOR);
-         if(isRoot){
-//             管理员权限放行
-             return true;
-         }
-//         是本人放行
+        if(isRoot){
+        // 管理员权限放行
+            return true;
+        }
+        // 是本人放行
         if(userId.equals(loginUserId)){
             return true;
         }
-            return false;
-
+        return false;
     }
 
     /**

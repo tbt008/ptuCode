@@ -1,6 +1,5 @@
 package com.example.oj.aop;
 
-import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.example.oj.annotation.AuthCheck;
 import com.example.oj.common.ErrorCode;
 import com.example.oj.common.Permission;
@@ -9,11 +8,7 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.request.RequestAttributes;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
-import javax.servlet.http.HttpServletRequest;
 
 @Aspect
 @Component

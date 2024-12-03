@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @Accessors(chain = true)
 public class Contest {
 
-    @TableId(value = "id", type = IdType.AUTO)
+    @TableId(value = "id", type = IdType.ASSIGN_ID)
     private Long id; // 主键
 
     @TableField(value = "name")
@@ -31,8 +31,6 @@ public class Contest {
     @TableField(value = "end_time")
     private LocalDateTime endTime; // 比赛结束时间
 
-    @TableField(value = "problem_id")
-    private String problemId; // 比赛题目json存储
 
     @TableField(value = "announcement")
     private String announcement; // 比赛公告
@@ -48,4 +46,10 @@ public class Contest {
 
     @TableField(value = "is_invite")
     private Boolean isInvite; // 是否需要教师导入才能比赛
+
+    @TableField(value = "cover")
+    private String cover;
+
+    @TableField(value = "language")
+    private Integer language;
 }

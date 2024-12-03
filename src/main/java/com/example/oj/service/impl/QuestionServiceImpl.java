@@ -12,16 +12,20 @@ import com.baomidou.mybatisplus.core.toolkit.ObjectUtils;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.example.oj.common.BaseContext;
 import com.example.oj.common.ErrorCode;
 import com.example.oj.common.Language;
 import com.example.oj.common.TestCaseResult;
 import com.example.oj.domain.dto.JudgeDTO;
 import com.example.oj.domain.dto.QuestionFilterDTO;
 import com.example.oj.domain.entity.CodeRecord;
+import com.example.oj.domain.entity.ContestQuestion;
 import com.example.oj.domain.entity.Question;
+import com.example.oj.domain.entity.QuestionInfo;
 import com.example.oj.domain.vo.QuestionUserVO;
 import com.example.oj.exception.BusinessException;
 import com.example.oj.mapper.CodeRecordMapper;
+import com.example.oj.mapper.ContestQuestionMapper;
 import com.example.oj.mapper.QuestionMapper;
 import com.example.oj.service.IQuestionService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -80,6 +84,9 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
     @Resource
     private IQuestionTagService iQuestionTagService;
 
+    @Resource
+    private ContestQuestionMapper contestQuestionMapper;
+
     @Override
     public Long submitQuestion(JudgeDTO judgeDTO) {
 
@@ -98,22 +105,21 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         Integer memoryLimit = question.getMemoryLimit();
         Integer timeLimit = question.getTimeLimit();
 
-//    新增一条提交记录
+        // 新增一条提交记录
         CodeRecord codeRecord = new CodeRecord();
         codeRecord.setResult(-1.0);
         codeRecord.setCode(judgeDTO.getCode());
         codeRecord.setLanguage(language);
         codeRecord.setQuestionId(judgeDTO.getQuestionId());
-//        codeRecord.setUserId( BaseContext.getUserInfo().getUserId());
-        codeRecord.setUserId(1L);
+        codeRecord.setUserId(BaseContext.getUserInfo().getUserId());
 
         LocalDateTime now = LocalDateTime.now();
         codeRecord.setCreateTime(now);
         codeRecord.setUpdateTime(now);
-//        状态待判题
+        // 状态待判题
         codeRecord.setStatus(0);
 
-//        判题机跑代码
+        // 判题机跑代码
         codeRecordMapper.insert(codeRecord);
         Long returnId = codeRecord.getId();
 
@@ -141,8 +147,8 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
 
                     // 设置请求的超时配置
                     RequestConfig requestConfig = RequestConfig.custom()
-                            .setSocketTimeout(6000)
-                            .setConnectTimeout(6000)
+                            .setSocketTimeout(60000)
+                            .setConnectTimeout(60000)
                             .build();
                     httpPost.setConfig(requestConfig);
 
@@ -340,6 +346,54 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
             throw new RuntimeException("questionList is null");
         }
         return questionList;
+    }
+    /**
+     * 获取比赛题目信息
+     * @param contestId
+     * @return
+     */
+    @Override
+    public List<Question> getQuestionListById(Long contestId) {
+        // 根据比赛id获取中间表
+        List<ContestQuestion> questionList = contestQuestionMapper.selectList(new QueryWrapper<ContestQuestion>().eq("contest_id", contestId));
+        // 从小到大排序
+        Collections.sort(questionList, new Comparator<ContestQuestion>() {
+            @Override
+            public int compare(ContestQuestion o1, ContestQuestion o2) {
+                return o2.getWeight() - o1.getWeight();
+            }
+        });
+        // 网络流获取问题id
+        List<Long> questionIdList = questionList.stream().map(ContestQuestion::getQuestionId).collect(Collectors.toList());
+        // 获取题目详细
+        List<Question> questions = questionMapper.selectBatchIds(questionIdList);
+        return questions;
+    }
+
+    @Override
+    public List<QuestionInfo> getQuestionIdListByContestId(Long contestId) {
+
+        // 根据比赛id获取中间表
+        List<ContestQuestion> questionList = contestQuestionMapper.selectList(new QueryWrapper<ContestQuestion>().eq("contest_id", contestId));
+        // 从小到大排序
+        Collections.sort(questionList, new Comparator<ContestQuestion>() {
+            @Override
+            public int compare(ContestQuestion o1, ContestQuestion o2) {
+                return o2.getWeight() - o1.getWeight();
+            }
+        });
+        // 网络流获取问题id
+        List<Long> questionIdList = questionList.stream().map(ContestQuestion::getQuestionId).collect(Collectors.toList());
+        // 获取题目详细
+        List<Question> questions = questionMapper.selectBatchIds(questionIdList);
+        List<QuestionInfo> questionInfoList = new ArrayList<>();
+        for (Question question : questions) {
+            QuestionInfo questionInfo = new QuestionInfo();
+            questionInfo.setQuestionName(question.getTitleName());
+            questionInfo.setTitledId(question.getTitleId());
+            questionInfoList.add(questionInfo);
+        }
+        return questionInfoList;
     }
 
     private String getLanguageConfig (Integer language) {

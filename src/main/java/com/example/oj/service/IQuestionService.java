@@ -8,6 +8,7 @@ import com.example.oj.common.TestCaseResult;
 import com.example.oj.domain.dto.JudgeDTO;
 import com.example.oj.domain.dto.QuestionFilterDTO;
 import com.example.oj.domain.entity.Question;
+import com.example.oj.domain.entity.QuestionInfo;
 import com.example.oj.domain.vo.QuestionUserVO;
 
 import org.springframework.web.multipart.MultipartFile;
@@ -42,4 +43,9 @@ public interface IQuestionService extends IService<Question> {
     int saveFile(Long questionId, MultipartFile file) throws IOException;
 
     List<Question> getQuestionList(List<Long> questionId);
+
+    List<Question> getQuestionListById(Long contestId);
+
+    List<QuestionInfo> getQuestionIdListByContestId(Long contestId);
+
 }
