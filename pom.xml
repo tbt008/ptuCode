@@ -123,6 +123,12 @@
             <artifactId>poi-ooxml</artifactId>
             <version>5.2.3</version> <!-- 确保版本与实际项目兼容 -->
         </dependency>
+
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjweaver</artifactId>
+            <version>1.9.19</version>
+        </dependency>
     </dependencies>
 
 

@@ -1,5 +1,7 @@
 package com.example.oj.utils;
 
+import com.example.oj.common.BaseContext;
+import com.example.oj.common.Permission;
 import com.example.oj.domain.entity.CodeRecord;
 import com.example.oj.domain.entity.Contest;
 import com.example.oj.domain.entity.Question;
@@ -24,18 +26,33 @@ public class PermissionUtils {
     @Resource
     private CodeRecordMapper codeRecordMapper;
 
+
+    public static boolean checkUserId(Long userId) {
+
+        Long loginUserId = BaseContext.getUserInfo().getUserId();
+
+        boolean isRoot = Permission.CheckAuth(Permission.ADMINISTRATOR);
+         if(isRoot){
+//             管理员权限放行
+             return true;
+         }
+//         是本人放行
+        if(userId.equals(loginUserId)){
+            return true;
+        }
+            return false;
+
+    }
+
     /**
      * 具体哪个题目的控制权
      * @param problemId
      * @return
      */
+
     public boolean problemController(Long problemId) {
         // TODO userId
         Long userId = 202211404217L;
-        Long userType = userMapper.selectById(userId).getUserType();
-        if ((userType & 1L) != 0L) {
-            return true;
-        }
         Question problem = questionMapper.selectById(problemId);
         if (problem.getCreateUser() == userId) {
             return true;

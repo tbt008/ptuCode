@@ -77,7 +77,7 @@ public class QuestionTagServiceImpl extends ServiceImpl<QuestionTagMapper, Quest
             HashSet<Integer> set=new HashSet<>(ids);
             List<QuestionTag> questionTags = new ArrayList<>();
             for(Integer tag_id:set){
-                questionTags.add(new QuestionTag().setTagId(tag_id).setQuestionId(title_id));
+//                questionTags.add(new QuestionTag().setTagId(tag_id).setQuestionId(title_id));
             }
             saveBatch(questionTags);
         }

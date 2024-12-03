@@ -1,5 +1,7 @@
 package com.example.oj.common;
 
+import com.example.oj.domain.entity.UserInfo;
+
 public enum Permission {
 
     ADMINISTRATOR(0L, "所有权限"),
@@ -18,4 +20,19 @@ public enum Permission {
         this.code = code;
         this.permission = permission;
     }
+    private Long getCode() {
+        return this.code;
+    }
+   public static boolean CheckAuth(Permission per){
+       Long code = per.getCode();
+       UserInfo userInfo = BaseContext.getUserInfo();
+       Long userType = userInfo.getUserType();
+       if ((userType & 1L) != 0L) {
+           return true;
+       }
+       if ((userType & (1L << code)) != 0) {
+           return true;
+       }
+       return false;
+   }
 }

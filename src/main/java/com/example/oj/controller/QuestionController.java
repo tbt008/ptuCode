@@ -1,7 +1,9 @@
 package com.example.oj.controller;
 
 
+import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.example.oj.annotation.AuthCheck;
 import com.example.oj.common.*;
 import com.example.oj.domain.dto.JudgeDTO;
 import com.example.oj.domain.dto.QuestionDTO;
@@ -10,6 +12,7 @@ import com.example.oj.domain.entity.Question;
 import com.example.oj.domain.vo.QuestionUserVO;
 import com.example.oj.domain.vo.QuestionVo;
 import com.example.oj.exception.BusinessException;
+import com.example.oj.service.IContestService;
 import com.example.oj.service.IQuestionService;
 import com.example.oj.service.IQuestionTagService;
 import com.example.oj.utils.PermissionUtils;
@@ -47,6 +50,9 @@ public class QuestionController {
     private IQuestionTagService iQuestionTagService;
 
     private PermissionUtils permissionUtils;
+
+    @Resource
+    private IContestService contestService;
 
     /**
      * 提交代码
@@ -93,8 +99,16 @@ public class QuestionController {
         if(question==null){
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
         }
-        return null;
-//       return Result.success(iQuestionService.getQuestionVO(question));
+        if(question.getStatus()==1){
+//            是比赛，查询一下用户有没有资格
+//            contestService.isInvite();
+return Result.error(null);
+        }
+        QuestionVo questionVo = new QuestionVo();
+
+        BeanUtil.copyProperties(question, questionVo);
+
+        return Result.success(questionVo);
     }
     /**
      * 题目列表(用户显示
@@ -116,8 +130,8 @@ public class QuestionController {
                 iQuestionService.getListWrapper(questionFilterDTO));
         List<QuestionUserVO> records = iQuestionService.getQuestionPageVO(questionPage).getRecords();
 //        过滤掉状态
-
-        return Result.success();
+//        已通过未通过
+        return Result.success(records);
     }
 
     /**
@@ -126,6 +140,7 @@ public class QuestionController {
      * @retrun questionid
      */
     @PostMapping("/add")
+    @AuthCheck(permission = Permission.QUESTION_EDITOR)
     public Result<Long> addQuestion(@RequestBody QuestionDTO questionDTO, HttpServletRequest request) {
         if (questionDTO == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -156,15 +171,19 @@ public class QuestionController {
      * @return
      */
     @PutMapping("/update")
+    @AuthCheck(permission = Permission.QUESTION_EDITOR)
     public Result<Boolean> updateQuestion(@RequestBody QuestionDTO questionDTO,HttpServletRequest request) {
         if (questionDTO == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
+
         // 判断是否存在
-        Question question = iQuestionService.lambdaQuery().eq(Question::getId, questionDTO.getId()).one();
+        Question question = iQuestionService.lambdaQuery().eq(Question::getId, questionDTO.getId()).eq(Question::getIsDeleted,0).one();
         if(question==null){
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR,"题目不存在");
         }
+//        权限校验
+        PermissionUtils.checkUserId(question.getCreateUser());
         // 参数校验
         iQuestionService.validQuestion(question);
 
@@ -181,11 +200,15 @@ public class QuestionController {
       * @return
      */
      @DeleteMapping("/delete/{title_id}")
+     @AuthCheck(permission = Permission.QUESTION_EDITOR)
      public Result<Boolean> deleteQuestion(@PathVariable("title_id") Long id, HttpServletRequest request) {
-         Question question = iQuestionService.lambdaQuery().eq(Question::getTitleId, id).one();
+         Question question = iQuestionService.lambdaQuery().eq(Question::getTitleId, id).eq(Question::getIsDeleted,0).one();
          if(question==null){
              throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
          }
+         //        权限校验
+         PermissionUtils.checkUserId(question.getCreateUser());
+
          return Result.success(iQuestionService.removeQuestion(question));
      }
 
@@ -196,7 +219,7 @@ public class QuestionController {
      * @return
      * @throws IOException
      */
-     @PostMapping("/savefile")
+     @PostMapping("/save/file")
      public Result<Integer> saveQuestionFile(@RequestParam("file") MultipartFile file, @RequestParam("path") Long questionId) throws IOException {
 
          Question question = iQuestionService.lambdaQuery().eq(Question::getId, questionId).one();
@@ -213,7 +236,7 @@ public class QuestionController {
      * @param questionId
      * @return
      */
-     @PostMapping("/questionlist")
+     @PostMapping("/contest/list")
      public Result questionList(@RequestBody Map<String, List<Long>> questionId) {
          List<Long> list = questionId.get("questionId");
          List<Question> questionList = iQuestionService.getQuestionList(list);
@@ -222,7 +245,7 @@ public class QuestionController {
                  question.setAnswer("");
              }
          }
-         return Result.success(iQuestionService.getQuestionList(list));
+         return Result.success(questionList);
      }
 
 }

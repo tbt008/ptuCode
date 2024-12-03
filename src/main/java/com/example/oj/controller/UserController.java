@@ -26,6 +26,7 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * <p>
@@ -110,11 +111,14 @@ public class UserController {
         }
         String s = DigestUtils.md5Hex(userLoginDTO.getPassword());
         //查询用户是否存在
-        User user = userService.lambdaQuery().eq(User::getId, userLoginDTO.getId()).eq(User::getPassword, s).one();
+        User user = userService.lambdaQuery().eq(User::getId, userLoginDTO.getId()).eq(User::getPassword, s).eq(User::getIsDeleted, 0).one();
         if (user == null) {
-            throw new BusinessException(400, "用户已存在");
+            throw new BusinessException(400, "用户不存在");
         }
-
+//        判断是否停用
+        if (user.getStatus()=="1") {
+            throw new BusinessException(400, "用户已停用");
+        }
 //        生成jwt
         Map<String, Object> claims = new HashMap<>();
         claims.put(JwtClaimsConstant.USER_ID, user.getId());
@@ -123,7 +127,7 @@ public class UserController {
 //        存redis
 //        先删除旧的token，就是说会把上一个登录同号的人挤下线
         redisTemplate.opsForValue().getAndDelete("login:"+userLoginDTO.getId());
-        redisTemplate.opsForValue().set("login:"+userLoginDTO.getId(),token,jwtProperties.getTtl());
+        redisTemplate.opsForValue().set("login:"+userLoginDTO.getId(),token,jwtProperties.getTtl(), TimeUnit.MILLISECONDS);
         return Result.success(token);
     }
 

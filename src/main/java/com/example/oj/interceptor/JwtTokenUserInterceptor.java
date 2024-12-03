@@ -61,7 +61,8 @@ public class JwtTokenUserInterceptor implements HandlerInterceptor {
             userInfo.setUserType(userType);
 //          获取redistoken 对比一下
 
-            String redisToken  = redisTemplate.opsForValue().get("login:" + claims.get(JwtClaimsConstant.USER_ID).toString()).toString();
+               String redisToken  = redisTemplate.opsForValue().get("login:" + claims.get(JwtClaimsConstant.USER_ID).toString()).toString();
+
             if (!token.equals(redisToken)){
                 return false;
             }
